@@ -1,0 +1,25 @@
+# Build stage
+FROM debian:trixie-slim AS builder
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libsqlite3-dev \
+    zlib1g-dev \
+    git
+
+WORKDIR /app
+
+RUN git clone https://github.com/mapbox/tippecanoe.git
+WORKDIR /app/tippecanoe
+RUN make -j
+
+# Executable stage
+FROM debian:trixie-slim
+
+WORKDIR /tippecanoe
+
+COPY --from=builder /app/tippecanoe/tippecanoe* /tippecanoe
+
+ENV PATH="/tippecanoe:$PATH"
+
+ENTRYPOINT ["tippecanoe"]
