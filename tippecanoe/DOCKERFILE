@@ -20,6 +20,7 @@ WORKDIR /tippecanoe
 
 COPY --from=builder /app/tippecanoe/tippecanoe* /tippecanoe
 
-ENV PATH="/tippecanoe:$PATH"
+COPY gen_tiles.sh /tippecanoe/gen_tiles.sh
+RUN chmod a+x /tippecanoe/gen_tiles.sh
 
-ENTRYPOINT ["tippecanoe"]
+ENV PATH="/tippecanoe:$PATH"
