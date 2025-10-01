@@ -1,0 +1,4 @@
+geopandas
+fiona
+pyogc
+contextily
