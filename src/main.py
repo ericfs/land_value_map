@@ -10,7 +10,7 @@ METADATA_FILE_PATH = os.path.join(BASE_PATH, 'Metadata_2024.csv')
 
 def exec_process_gdb(gdb):
   towns_df = read_towns_df(METADATA_FILE_PATH)
-  return process_gdb(gdb, BASE_PATH, towns_df, render_image=True, overwrite=True)
+  return process_gdb(gdb, BASE_PATH, towns_df)
 
 if __name__ == '__main__':
   print('CPUs:', cpu_count())
