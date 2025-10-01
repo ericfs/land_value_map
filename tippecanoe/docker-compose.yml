@@ -1,0 +1,9 @@
+services:
+  tippecanoe:
+    build:
+      context: .
+      dockerfile: DOCKERFILE
+    volumes:
+      - '../../geojson:/geojson'
+      - '../../gen_tiles:/tiles'
+    command: ["gen_tiles.sh"]
