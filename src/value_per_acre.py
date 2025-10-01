@@ -1,3 +1,5 @@
+import pandas as pd
+
 AVPA_NAME = 'Appraised_Value_Per_Acre'
 
 def compute_value_per_acre(df):
