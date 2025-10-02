@@ -1,0 +1,16 @@
+services:
+  map-nginx:
+    container_name: map-nginx
+    image: nginx:stable-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    networks:
+      - cloudflared
+
+networks:
+  cloudflared:
+    name: cloudflared

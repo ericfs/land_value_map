@@ -17,3 +17,40 @@
         project_src: "{{ build_dir }}/tippecanoe"
         service: "tippecanoe"
         cleanup: true
+
+- name: Deploy static map site
+  hosts: localhost
+  vars_files:
+    - "config.yml"
+
+  tasks:
+    - name: Create deployment folder.
+      ansible.builtin.file:
+        path: "{{ deploy_dir }}/static"
+        state: directory
+        mode: 0755
+    
+    - name: Sync Deployment directory
+      ansible.posix.synchronize:
+        src: "{{ build_dir }}/serving/"
+        dest: "{{ deploy_dir }}"
+        delete: false
+        recursive: true
+        perms: false
+    
+    - name: Sync generated tiles directory
+      ansible.posix.synchronize:
+        src: "{{ build_dir }}/../gen_tiles/"
+        dest: "{{ deploy_dir }}/static"
+        delete: false
+        recursive: true
+        perms: false
+
+    - name: Fill static HTML templates
+      ansible.builtin.template:
+        src: "{{ build_dir }}/templates/index.html.j2"
+        dest: "{{ deploy_dir }}/static/index.html"
+
+    - name: Start nginx to serve the map
+      community.docker.docker_compose_v2:
+        project_src: "{{ deploy_dir }}"

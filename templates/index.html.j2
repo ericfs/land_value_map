@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', '{{ google_analytics_id }}');
+    </script>
+    <title>3D Parcel Map</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        #legend {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            border: 1px solid #000;
+            border-top: 0;
+            border-right: 0;
+            border-radius: 0 0 0 4px;
+            background: #fff;
+            padding: 5px;
+        }
+
+        #gradient {
+            background: linear-gradient(to right, green 0%, blue 25%, red 50%, yellow 75%, white 100%);
+            border: 1px solid #000;
+            height: 40px;
+        }
+
+        .title {
+            text-align: center;
+            margin: 5px 0;
+        }
+        .labels {
+            display: flex;
+            justify-content: space-between;
+        }
+        .label {
+            font-size: 10px;
+        }
+        .attribution {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            background: #fff;
+            border: 1px solid #000;
+            border-left: 0;
+            border-bottom: 0;
+            border-radius: 0 4px 0 0;
+            font-size: 12px;
+            padding: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+    <div id="legend">
+        <h3 class="title">Appraised Value per Acre ($ / Acre)</h3>
+        <div class="labels">
+            <div class="zero label">0</div>
+            <div class="one label">500K</div>
+            <div class="two label">2M</div>
+            <div class="three label">10M</div>
+            <div class="four label">40M</div>
+        </div>
+        <div id="gradient"></div>
+    </div>
+    <div class="attribution">© Stronger Haven 2025. <a href="https://github.com/ericfs/land_value_map">Github</a></div>
+
+    <script>
+        // You'll need an API key from a basemap provider like Maptiler or Stadia.
+        // Get a free key from: https://www.maptiler.com/cloud/
+        const apiKey = '{{ maptiler_api_key }}';
+
+        const map = new maplibregl.Map({
+            container: 'map', // The container ID
+            style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${apiKey}`, // The basemap style
+            center: [-72.811096, 41.282098], // Initial map center [lng, lat]
+            zoom: 12, // Initial zoom level
+            pitch: 45, // Initial pitch in degrees to show the 3D effect
+            bearing: -17.6 // Initial bearing in degrees
+        });
+
+        const lvpa_expression = ["/", ["get", "Appraised_Total"], ["get", "Land_Acres"]];
+
+        paint = {
+            "fill-extrusion-color": [
+                "interpolate",
+                ["linear"],
+                lvpa_expression,
+                0,
+                "green",
+                500000,
+                "blue",
+                2000000,
+                "red",
+                10000000,
+                "yellow",
+                40000000,
+                "white",
+            ],
+            "fill-extrusion-opacity": 1,
+            "fill-extrusion-height": ["/", lvpa_expression, 5000],
+        }
+
+        map.on('load', () => {
+            // 1. ADD THE VECTOR TILE SOURCE
+            // This points to your locally hosted tile.json file.
+            // Replace the URL with the actual path to your tile.json.
+            map.addSource('parcels-source', {
+                type: 'vector',
+                url: 'tile.json' // <--- IMPORTANT
+            });
+
+            // 2. ADD THE 3D PARCEL LAYER
+            map.addLayer({
+                'id': 'parcels-3d',
+                'type': 'fill-extrusion', // This is the layer type for 3D polygons
+                'source': 'parcels-source', // The source ID we just defined
+                'source-layer': 'parcels', // <--- IMPORTANT: The name of the layer within your vector tiles
+                'minzoom': 6, // Only show this 3D layer at high zoom levels for performance
+                'paint': paint
+            });
+            map.touchPitch.enabled();
+        });
+    </script>
+
+</body>
+
+</html>
