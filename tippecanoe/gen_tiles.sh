@@ -17,3 +17,5 @@ tippecanoe -zg \
   --accumulate-attribute=Land_Acres:sum \
   --output-to-directory=/tiles \
 /geojson/*.geojson
+
+gzip -f9 /tiles/*/*/*.pbf

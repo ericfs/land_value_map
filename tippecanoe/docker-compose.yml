@@ -4,6 +4,6 @@ services:
       context: .
       dockerfile: DOCKERFILE
     volumes:
-      - '../../geojson:/geojson'
-      - '../../gen_tiles:/tiles'
+      - '../../geojson:/geojson:ro'
+      - '../../gen_tiles:/tiles:rw'
     command: ["gen_tiles.sh"]
