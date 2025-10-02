@@ -3,37 +3,17 @@
   hosts: localhost
 
   tasks:
-    - name: Check Python version
-      ansible.builtin.command:
-        cmd: "python3 -V"
-      register: out
-    
-    - debug: var=out.stdout
-
     - name: Install Python dependencies
       ansible.builtin.pip:
         requirements: "{{ build_dir }}/ansible/requirements.txt"
-    
-    - debug:
-        msg: "{{ lookup('env', 'PWD') }}"
 
     - name: Generate GeoJSON
       ansible.builtin.command:
         cmd: "python3 '{{ build_dir }}/src/main.py'"
         chdir: "{{ build_dir }}"
     
-    - name: Build Tippecanoe Container
-      community.docker.docker_image:
-        name: "tippecanoe"
-        build:
-          path: "{{ build_dir }}/tippecanoe/"
-        source: build
-        tag: latest
-        state: present
-      register: out
-
-    - debug: var=out.stdout
-    
-    # - name: Generate Map Tiles
-    #   community.docker.docker_container
-    #     cmd: ""
+    - name: Generate Map Tiles
+      community.docker.docker_compose_v2_run:
+        project_src: "{{ build_dir }}/tippecanoe"
+        service: "tippecanoe"
+        cleanup: true
