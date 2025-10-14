@@ -132,7 +132,7 @@
             // Replace the URL with the actual path to your tile.json.
             map.addSource('parcels-source', {
                 type: 'vector',
-                url: 'tile.json' // <--- IMPORTANT
+                url: '{{ version }}/tile.json' // <--- IMPORTANT
             });
 
             // 2. ADD THE 3D PARCEL LAYER

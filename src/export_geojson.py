@@ -1,3 +1,5 @@
+import os
+
 # GeoJSON Export
 
 def df_for_geojson(df):
@@ -21,4 +23,9 @@ def df_for_geojson(df):
 def export_geojson(df, filename):
   '''Export the DataFrame to a GeoJSON file that can be used with Tippecanoe.'''
   df = df_for_geojson(df)
+
+  # Ensure directory exists
+  os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+  # Export to GeoJSON
   df.to_file(filename, driver='GeoJSON')

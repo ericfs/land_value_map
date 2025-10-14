@@ -55,7 +55,7 @@ def merge_tilejson_data(tilejson_path, metadata_path, scheme, hostname, version,
     additional_data = {
         "version": version,
         "tiles": [
-            f"{scheme}://{hostname}/tiles/{version}/{{z}}/{{x}}/{{y}}.pbf"
+            f"{scheme}://{hostname}/{version}/tiles/{{z}}/{{x}}/{{y}}.pbf"
         ]
     }
 

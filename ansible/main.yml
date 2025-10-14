@@ -7,18 +7,39 @@
   tasks:
     - name: Install Python dependencies
       ansible.builtin.pip:
-        requirements: "{{ build_dir }}/ansible/requirements.txt"
+        requirements: "{{ working_dir }}/ansible/requirements.txt"
+
+    - name: Create build_dir folder.
+      ansible.builtin.file:
+        path: "{{ build_dir }}"
+        state: directory
+        mode: 0755
 
     - name: Generate GeoJSON
       ansible.builtin.command:
-        cmd: "python3 '{{ build_dir }}/src/main.py'"
-        chdir: "{{ build_dir }}"
-        creates: "{{ build_dir }}/../geojson"
+        argv:
+          - "python3"
+          - "{{ working_dir }}/src/main.py"
+          - "--input_dir=.."
+          - "--output_dir={{ build_dir }}"
+        chdir: "{{ working_dir }}"
+        creates: "{{ geojson_dir }}"
 
     - name: Check if map tiles already exist
       ansible.builtin.stat:
-        path: "{{ build_dir }}/../gen_tiles/metadata.json"
+        path: "{{ tiles_dir }}/metadata.json"
       register: tiles_status
+
+    - name: Create tippecanoe folder.
+      ansible.builtin.file:
+        path: "{{ build_dir }}/tippecanoe"
+        state: directory
+        mode: 0755
+    
+    - name: Fill Tippecanoe Docker Compose template
+      ansible.builtin.template:
+        src: "{{ working_dir }}/tippecanoe/docker-compose.yml.j2"
+        dest: "{{ build_dir }}/tippecanoe/docker-compose.yml"
     
     - name: Generate Map Tiles
       community.docker.docker_compose_v2_run:
@@ -29,13 +50,13 @@
     
     - name: Fill tile.json
       ansible.builtin.command:
-        chdir: "{{ build_dir }}"
+        chdir: "{{ working_dir }}"
         argv:
           - "python3"
-          - "{{ build_dir }}/src/merge_tilejson.py"
-          - "--tilejson={{ build_dir }}/templates/tile.json"
-          - "--metadata={{ build_dir }}/../gen_tiles/metadata.json"
-          - "--output={{ build_dir }}/../gen_tiles/tile.json"
+          - "{{ working_dir }}/src/merge_tilejson.py"
+          - "--tilejson={{ working_dir }}/templates/tile.json"
+          - "--metadata={{ build_dir }}/tiles/metadata.json"
+          - "--output={{ build_dir }}/tile.json"
           - "--scheme={{ scheme }}"
           - "--hostname={{ hostname }}"
           - "--version={{ version }}"
@@ -48,13 +69,13 @@
   tasks:
     - name: Create deployment folder.
       ansible.builtin.file:
-        path: "{{ deploy_dir }}/static"
+        path: "{{ deploy_dir }}/static/{{ version }}/tiles"
         state: directory
         mode: 0755
     
     - name: Sync Deployment directory
       ansible.posix.synchronize:
-        src: "{{ build_dir }}/serving/"
+        src: "{{ working_dir }}/serving/"
         dest: "{{ deploy_dir }}"
         delete: false
         recursive: true
@@ -62,15 +83,23 @@
     
     - name: Sync generated tiles directory
       ansible.posix.synchronize:
-        src: "{{ build_dir }}/../gen_tiles/"
-        dest: "{{ deploy_dir }}/static"
+        src: "{{ build_dir }}/tiles/"
+        dest: "{{ deploy_dir }}/static/{{ version }}/tiles"
+        delete: false
+        recursive: true
+        perms: false
+    
+    - name: Sync generated tile.json
+      ansible.posix.synchronize:
+        src: "{{ build_dir }}/tile.json"
+        dest: "{{ deploy_dir }}/static/{{ version }}"
         delete: false
         recursive: true
         perms: false
 
     - name: Fill static HTML templates
       ansible.builtin.template:
-        src: "{{ build_dir }}/templates/index.html.j2"
+        src: "{{ working_dir }}/templates/index.html.j2"
         dest: "{{ deploy_dir }}/static/index.html"
 
     - name: Start nginx to serve the map
