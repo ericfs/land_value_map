@@ -1,6 +1,8 @@
 ---
 - name: Process Land Value and Generate Map Tiles
   hosts: localhost
+  vars_files:
+    - "config.yml"
 
   tasks:
     - name: Install Python dependencies
@@ -11,12 +13,32 @@
       ansible.builtin.command:
         cmd: "python3 '{{ build_dir }}/src/main.py'"
         chdir: "{{ build_dir }}"
+        creates: "{{ build_dir }}/../geojson"
+
+    - name: Check if map tiles already exist
+      ansible.builtin.stat:
+        path: "{{ build_dir }}/../gen_tiles/metadata.json"
+      register: tiles_status
     
     - name: Generate Map Tiles
       community.docker.docker_compose_v2_run:
         project_src: "{{ build_dir }}/tippecanoe"
         service: "tippecanoe"
         cleanup: true
+      when: not tiles_status.stat.exists
+    
+    - name: Fill tile.json
+      ansible.builtin.command:
+        chdir: "{{ build_dir }}"
+        argv:
+          - "python3"
+          - "{{ build_dir }}/src/merge_tilejson.py"
+          - "--tilejson={{ build_dir }}/templates/tile.json"
+          - "--metadata={{ build_dir }}/../gen_tiles/metadata.json"
+          - "--output={{ build_dir }}/../gen_tiles/tile.json"
+          - "--scheme={{ scheme }}"
+          - "--hostname={{ hostname }}"
+          - "--version={{ version }}"
 
 - name: Deploy static map site
   hosts: localhost

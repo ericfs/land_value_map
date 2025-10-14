@@ -18,4 +18,4 @@ tippecanoe -zg \
   --output-to-directory=/tiles \
 /geojson/*.geojson
 
-gzip -f9 /tiles/*/*/*.pbf
+gzip -fk9 /tiles/*/*/*.pbf
