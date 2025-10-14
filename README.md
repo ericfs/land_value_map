@@ -10,6 +10,9 @@ Used to generate https://map.strongerhaven.org
 
 ## Build and test
 
+- copy `example.config.yml` to `config.yml`.
+- Fill in API key.
+
 ```sh
 git clone https://github.com/ericfs/land_value_map.git
 cd land_value_map

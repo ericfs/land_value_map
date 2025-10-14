@@ -1,0 +1,16 @@
+# From Google
+google_analytics_id: "<GA_ID>"
+# From https://cloud.maptiler.com/account/keys/
+maptiler_api_key: "<API_KEY>"
+
+build_dir: "{{ working_dir }}/tmp"
+geojson_dir: "{{ build_dir }}/geojson"
+tiles_dir: "{{ build_dir }}/tiles"
+
+# Location where deployment will be stored
+deploy_dir: ~/tmp/landvalue
+
+# tile.json parameters
+hostname: "localhost:8080"
+scheme: "http"
+version: 1
