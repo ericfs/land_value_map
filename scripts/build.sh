@@ -3,9 +3,14 @@
 # Expects to be run from the project root directory.
 
 build_dir=`pwd`
+venv_dir="${build_dir}/.venv"
 
-# Assumes there is a virtual environment
-python_interpreter="`pwd`/.venv/bin/python3"
+# Create virtual environment if it doesn't exist
+if [ ! -d "${venv_dir}" ]; then
+  python3 -m venv ${venv_dir}
+fi
+
+python_interpreter="${venv_dir}/bin/python3"
 
 ansible_variables="ansible_python_interpreter=\"${python_interpreter}\" working_dir=\"${build_dir}\""
 
