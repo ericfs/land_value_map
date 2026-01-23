@@ -6,7 +6,10 @@
 
 name: Deploy to GitHub Pages
 
-on: workflow_dispatch
+on:
+  push:
+    branches: [ "github-pages" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
