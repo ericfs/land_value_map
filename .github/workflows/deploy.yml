@@ -1,0 +1,52 @@
+# This is a basic workflow to deploy the static map to GitHub Pages.
+# To use this workflow, you need to set the following secrets in your repository settings:
+# GOOGLE_ANALYTICS_ID: Your Google Analytics ID.
+# MAPTILER_API_KEY: Your Maptiler API key.
+# You also need to enable GitHub Pages for your repository.
+
+name: Deploy to GitHub Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install Jinja2
+
+      - name: Render index.html
+        env:
+          GOOGLE_ANALYTICS_ID: ${{ secrets.GOOGLE_ANALYTICS_ID }}
+          MAPTILER_API_KEY: ${{ secrets.MAPTILER_API_KEY }}
+          VERSION: '1' # You can change this to a different version if needed
+        run: python scripts/render.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './index.html'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
