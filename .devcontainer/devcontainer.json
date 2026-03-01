@@ -4,7 +4,9 @@
     "dockerfile": "Dockerfile"
   },
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest"
+    }
   },
   "customizations": {
     "vscode": {
@@ -15,13 +17,5 @@
         "ms-azuretools.vscode-docker"
       ]
     }
-  },
-  "mounts": [
-    // Mount the parent directory so that input files as configured in the scripts (e.g. ../Parcel Collection 2024) are accessible
-    "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind,consistency=cached"
-  ],
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  "postCreateCommand": "pip3 install -r ansible/requirements.txt",
-  "remoteUser": "vscode",
-  "updateRemoteUserUID": false
+  }
 }
