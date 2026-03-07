@@ -1,5 +1,10 @@
 #! /bin/bash
 
+set -euo pipefail
+
+GEOJSON_DIR="${GEOJSON_DIR:?GEOJSON_DIR must be set}"
+TILES_DIR="${TILES_DIR:?TILES_DIR must be set}"
+
 tippecanoe -zg \
   --no-tile-compression \
   --force \
@@ -15,7 +20,7 @@ tippecanoe -zg \
   -l parcels \
   --accumulate-attribute=Appraised_Total:sum \
   --accumulate-attribute=Land_Acres:sum \
-  --output-to-directory=/tiles \
-/geojson/*.geojson
+  --output-to-directory="${TILES_DIR}" \
+"${GEOJSON_DIR}"/*.geojson
 
-gzip -fk9 /tiles/*/*/*.pbf
+gzip -fk9 "${TILES_DIR}"/*/*/*.pbf

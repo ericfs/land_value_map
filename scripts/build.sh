@@ -5,20 +5,27 @@ export LANG=C.UTF-8
 
 # Expects to be run from the project root directory.
 
-build_dir=`pwd`
-venv_dir="${build_dir}/.venv"
-# Create virtual environment if it doesn't exist
-if [ ! -d "${venv_dir}" ]; then
-  python3 -m venv ${venv_dir}
+set -euo pipefail
+
+build_dir=$(pwd)
+
+# Detect if running inside a container
+in_container() {
+  [ -f /.dockerenv ] || [ -f /run/.containerenv ] || grep -qsm1 'docker\|lxc\|containerd' /proc/1/cgroup 2>/dev/null
+}
+
+if in_container; then
+  # Running inside the dev container — execute the workflow directly.
+  ansible-playbook ansible/main.yml -e "working_dir=\"${build_dir}\""
+else
+  # Running outside — build and run the dev container image.
+  echo "Not inside a container. Building and running the dev container..."
+
+  docker build -f .devcontainer/Dockerfile -t land-value-map-build .
+  docker run --rm \
+    -p 8080:80 \
+    -v "${build_dir}:/workspaces/land_value_map" \
+    -w /workspaces/land_value_map \
+    land-value-map-build \
+    bash scripts/build.sh
 fi
-
-source "${venv_dir}/bin/activate"
-
-python_interpreter="${venv_dir}/bin/python3"
-
-# Install Ansible
-"${venv_dir}/bin/pip3" install ansible
-
-ansible_variables="ansible_python_interpreter=\"${python_interpreter}\" working_dir=\"${build_dir}\""
-
-ansible-playbook ansible/main.yml -e "${ansible_variables}"

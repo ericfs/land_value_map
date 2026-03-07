@@ -5,10 +5,6 @@
     - "config.yml"
 
   tasks:
-    - name: Install Python dependencies
-      ansible.builtin.pip:
-        requirements: "{{ working_dir }}/ansible/requirements.txt"
-
     - name: Create build_dir folder.
       ansible.builtin.file:
         path: "{{ build_dir }}"
@@ -30,24 +26,24 @@
         path: "{{ tiles_dir }}/metadata.json"
       register: tiles_status
 
-    - name: Create tippecanoe folder.
+    - name: Create tiles output directory
       ansible.builtin.file:
-        path: "{{ build_dir }}/tippecanoe"
+        path: "{{ tiles_dir }}"
         state: directory
         mode: 0755
-    
-    - name: Fill Tippecanoe Docker Compose template
-      ansible.builtin.template:
-        src: "{{ working_dir }}/tippecanoe/docker-compose.yml.j2"
-        dest: "{{ build_dir }}/tippecanoe/docker-compose.yml"
-    
-    - name: Generate Map Tiles
-      community.docker.docker_compose_v2_run:
-        project_src: "{{ build_dir }}/tippecanoe"
-        service: "tippecanoe"
-        cleanup: true
       when: not tiles_status.stat.exists
-    
+
+    - name: Generate Map Tiles
+      ansible.builtin.command:
+        argv:
+          - "bash"
+          - "{{ working_dir }}/tippecanoe/gen_tiles.sh"
+        chdir: "{{ working_dir }}"
+      environment:
+        GEOJSON_DIR: "{{ geojson_dir }}"
+        TILES_DIR: "{{ tiles_dir }}"
+      when: not tiles_status.stat.exists
+
     - name: Fill tile.json
       ansible.builtin.command:
         chdir: "{{ working_dir }}"
@@ -72,7 +68,7 @@
         path: "{{ deploy_dir }}/static/{{ version }}/tiles"
         state: directory
         mode: 0755
-    
+
     - name: Sync Deployment directory
       ansible.posix.synchronize:
         src: "{{ working_dir }}/serving/"
@@ -80,7 +76,7 @@
         delete: false
         recursive: true
         perms: false
-    
+
     - name: Sync generated tiles directory
       ansible.posix.synchronize:
         src: "{{ build_dir }}/tiles/"
@@ -88,7 +84,7 @@
         delete: false
         recursive: true
         perms: false
-    
+
     - name: Sync generated tile.json
       ansible.posix.synchronize:
         src: "{{ build_dir }}/tile.json"
@@ -102,6 +98,22 @@
         src: "{{ working_dir }}/templates/index.html.j2"
         dest: "{{ deploy_dir }}/static/index.html"
 
+    - name: Copy nginx config for serving
+      ansible.builtin.copy:
+        src: "{{ deploy_dir }}/nginx/nginx.conf"
+        dest: "/etc/nginx/nginx.conf"
+        remote_src: true
+
+    - name: Symlink static content to nginx html directory
+      ansible.builtin.file:
+        src: "{{ deploy_dir }}/static"
+        dest: "/usr/share/nginx/html"
+        state: link
+        force: true
+
     - name: Start nginx to serve the map
-      community.docker.docker_compose_v2:
-        project_src: "{{ deploy_dir }}"
+      ansible.builtin.command:
+        argv:
+          - "nginx"
+          - "-g"
+          - "daemon off;"

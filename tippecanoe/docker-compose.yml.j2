@@ -1,9 +1,0 @@
-services:
-  tippecanoe:
-    build:
-      context: .
-      dockerfile: {{ working_dir }}/tippecanoe/DOCKERFILE
-    volumes:
-      - '{{ geojson_dir }}:/geojson:ro'
-      - '{{ tiles_dir }}:/tiles:rw'
-    command: ["gen_tiles.sh"]
