@@ -97,12 +97,14 @@
       ansible.builtin.template:
         src: "{{ working_dir }}/templates/index.html.j2"
         dest: "{{ deploy_dir }}/static/index.html"
+      notify: reload nginx
 
     - name: Copy nginx config for serving
       ansible.builtin.copy:
         src: "{{ deploy_dir }}/nginx/nginx.conf"
         dest: "/etc/nginx/nginx.conf"
         remote_src: true
+      notify: reload nginx
 
     - name: Symlink static content to nginx html directory
       ansible.builtin.file:
@@ -110,10 +112,12 @@
         dest: "/usr/share/nginx/html"
         state: link
         force: true
+      notify: reload nginx
 
     - name: Start nginx to serve the map
-      ansible.builtin.command:
-        argv:
-          - "nginx"
-          - "-g"
-          - "daemon off;"
+      ansible.builtin.shell: pgrep nginx || nginx
+      changed_when: false
+
+  handlers:
+    - name: reload nginx
+      ansible.builtin.command: nginx -s reload
