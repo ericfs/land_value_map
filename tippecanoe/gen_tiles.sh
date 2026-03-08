@@ -8,10 +8,11 @@ TILES_DIR="${TILES_DIR:?TILES_DIR must be set}"
 tippecanoe -zg \
   --no-tile-compression \
   --force \
-  --simplification=2 \
+  --simplification=3 \
   --minimum-detail=6 \
   --low-detail=11 \
-  --maximum-tile-bytes=2100000 \
+  --maximum-tile-bytes=5000000 \
+  --no-feature-limit \
   --coalesce-densest-as-needed \
   --extend-zooms-if-still-dropping \
   -x Location_Parcels \
