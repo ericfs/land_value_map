@@ -18,6 +18,10 @@ def df_for_geojson(df):
   # Change to the coordinate system to one expected by tippecanoe
   df = df.to_crs(epsg=4326)
 
+  # Round numeric columns to save file bytes
+  for col in ['Appraised_Value_Per_Acre', 'Appraised_Total', 'Land_Acres']:
+    df[col] = df[col].round(0).astype(int, errors='ignore')
+
   return df
 
 def export_geojson(df, filename):
@@ -27,5 +31,5 @@ def export_geojson(df, filename):
   # Ensure directory exists
   os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-  # Export to GeoJSON
-  df.to_file(filename, driver='GeoJSON')
+  # Export to GeoJSON with limited coordinate precision
+  df.to_file(filename, driver='GeoJSON', coordinate_precision=7)

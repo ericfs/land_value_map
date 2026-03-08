@@ -180,6 +180,25 @@ def apply_transform(parcel_gdf, cama_gdf, entry):
         cama_key = compound_col
         parcel_gdf[parcel_key] = parcel_gdf[parcel_key].astype(str).str.strip()
 
+    elif transform == 'coventry_map_lot':
+        # Coventry: CAMA key is Map+'-'+Lot (Lot may include block, e.g. '2-72')
+        # Parcel Parcel_ID is already in Map-Block-Lot or Map-Lot format
+        # Normalize both sides: strip and convert each part to int to remove leading zeros
+        compound_col = 'Map_Lot_compound'
+        cama_gdf[compound_col] = (
+            cama_gdf['Map'].astype(str).str.strip() + '-' +
+            cama_gdf['Lot'].astype(str).str.strip()
+        )
+        def _norm_parts(v):
+            parts = str(v).split('-')
+            try:
+                return '-'.join(str(int(p)) for p in parts)
+            except (ValueError, TypeError):
+                return str(v).strip()
+        cama_gdf[compound_col] = cama_gdf[compound_col].apply(_norm_parts)
+        parcel_gdf[parcel_key] = parcel_gdf[parcel_key].astype(str).apply(_norm_parts)
+        cama_key = compound_col
+
     elif transform == 'winchester_compound':
         # Winchester: parcel compound Map+' '+Block+' '+Lot; CAMA PROP_ID split on '||'
         parcel_compound = 'Map_Block_Lot_compound'
@@ -190,7 +209,7 @@ def apply_transform(parcel_gdf, cama_gdf, entry):
         )
         parcel_key = parcel_compound
         cama_gdf[cama_key] = cama_gdf[cama_key].astype(str).apply(
-            lambda v: ' '.join(v.split('||')))
+            lambda v: ' '.join(p for p in v.split('||') if p.strip().strip('|')))
 
     else:
         print(f"Warning: unknown transform '{transform}'")

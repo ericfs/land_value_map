@@ -52,7 +52,8 @@
   "bethany": {
     "parcel_key": "Link",
     "cama_key": "PID",
-    "ratio": 1.04
+    "ratio": 1.04,
+    "as_number": true
   },
   "bloomfield": {
     "parcel_key": "Link",
@@ -152,9 +153,11 @@
     "note": "Missing CAMA layer in CRCOG.gdb"
   },
   "coventry": {
-    "parcel_key": "Link",
-    "cama_key": "GIS_Tag",
-    "ratio": 0.98
+    "parcel_key": "Parcel_ID",
+    "cama_key": "Map_Lot_compound",
+    "ratio": 0.993,
+    "transform": "coventry_map_lot",
+    "note": "Parcel Parcel_ID='43-2-163' matches CAMA Map+'-'+Lot='43-2-163'; int-normalize to strip leading zeros"
   },
   "cromwell": {
     "parcel_key": "Link",
@@ -299,7 +302,8 @@
   "guilford": {
     "parcel_key": "Link",
     "cama_key": "PID",
-    "ratio": 1.03
+    "ratio": 1.03,
+    "as_number": true
   },
   "haddam": {
     "parcel_key": "Link",
@@ -390,7 +394,8 @@
   "madison": {
     "parcel_key": "Link",
     "cama_key": "GIS_Tag",
-    "ratio": 1.0
+    "ratio": 1.0,
+    "as_number": true
   },
   "manchester": {
     "parcel_key": "Link",
@@ -459,7 +464,8 @@
   "new britain": {
     "parcel_key": "PID",
     "cama_key": "Parcel_ID",
-    "ratio": 1.0
+    "ratio": 1.0,
+    "as_number": true
   },
   "new canaan": {
     "parcel_key": "Link",
@@ -582,7 +588,8 @@
   "plymouth": {
     "parcel_key": "Link",
     "cama_key": "PID",
-    "ratio": 1.02
+    "ratio": 1.02,
+    "as_number": true
   },
   "pomfret": {
     "parcel_key": "Link",
@@ -795,7 +802,8 @@
   "washington": {
     "parcel_key": "Link",
     "cama_key": "PID",
-    "ratio": 1.2
+    "ratio": 1.2,
+    "as_number": true
   },
   "waterbury": {
     "parcel_key": "Link",
@@ -861,7 +869,8 @@
   "windsor": {
     "parcel_key": "FILECODE",
     "cama_key": "GIS_Tag",
-    "ratio": 0.99
+    "ratio": 0.99,
+    "as_number": true
   },
   "windsor locks": {
     "parcel_key": "Link",
@@ -873,7 +882,9 @@
     "cama_key": "PROP_ID",
     "ratio": 0.605,
     "transform": "winchester_compound",
-    "note": "Parcel: Map+' '+Block+' '+Lot; CAMA: PROP_ID split on '||' to get Map||Block||Lot"
+    "value_col": "TOTAL_VAL",
+    "acres_col": "LOT_SIZE",
+    "note": "Parcel: Map+' '+Block+' '+Lot; CAMA: PROP_ID split on '||'; CAMA uses ALL_CAPS columns"
   },
   "wolcott": {
     "parcel_key": "Link",
@@ -883,7 +894,8 @@
   "woodbridge": {
     "parcel_key": "Link",
     "cama_key": "PID",
-    "ratio": 1.03
+    "ratio": 1.03,
+    "as_number": true
   },
   "woodbury": {
     "parcel_key": "Link",
@@ -893,6 +905,9 @@
   "woodstock": {
     "parcel_key": "Link",
     "cama_key": "AV_PID",
-    "ratio": 1.0
+    "ratio": 1.0,
+    "as_number": true,
+    "value_col": "Total_Assessed_Parcel_Value",
+    "acres_col": "Land_Area_in_Acres"
   }
 }
