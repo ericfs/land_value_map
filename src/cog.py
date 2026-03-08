@@ -1,9 +1,11 @@
+import gc
+import json
 import os
 from export_geojson import export_geojson
 from static_map import render_map
-from town_join import attempt_join
+from town_join import attempt_join, JOIN_KEYS
 from town_layers import gdb_to_town_layers
-from town_name import town_name_to_file_name
+from town_name import town_name_to_file_name, normalize_town_name
 from value_per_acre import compute_value_per_acre, filter_value_per_acre, compute_capped_value_per_acre
 
 # Lists COGs represented as GDB directories
@@ -47,6 +49,30 @@ def process_gdb(gdb_path, base_output_path, towns_df, render_image = False, over
       continue
 
     try:
+      entry = JOIN_KEYS.get(normalize_town_name(town_name), {})
+      if 'value_col' in entry:
+        attempt_join_df = attempt_join_df.rename(columns={entry['value_col']: 'Appraised_Total'})
+      if 'acres_col' in entry:
+        attempt_join_df = attempt_join_df.rename(columns={entry['acres_col']: 'Land_Acres'})
+      if 'value_cols_sum' in entry:
+        import pandas as pd
+        attempt_join_df['Appraised_Total'] = sum(
+          pd.to_numeric(attempt_join_df[c], errors='coerce').fillna(0)
+          for c in entry['value_cols_sum'] if c in attempt_join_df.columns
+        )
+      if 'acres_cols_sum' in entry:
+        import pandas as pd
+        attempt_join_df['Land_Acres'] = sum(
+          pd.to_numeric(attempt_join_df[c], errors='coerce').fillna(0)
+          for c in entry['acres_cols_sum'] if c in attempt_join_df.columns
+        )
+      # Handle merge suffix collisions: when both parcel and CAMA layers have the same column,
+      # pandas renames them _x (parcel) and _y (CAMA). Prefer the CAMA (_y) version.
+      cols = attempt_join_df.columns
+      if 'Appraised_Total' not in cols and 'Appraised_Total_y' in cols:
+        attempt_join_df = attempt_join_df.rename(columns={'Appraised_Total_y': 'Appraised_Total'})
+      if 'Land_Acres' not in cols and 'Land_Acres_y' in cols:
+        attempt_join_df = attempt_join_df.rename(columns={'Land_Acres_y': 'Land_Acres'})
       compute_value_per_acre(attempt_join_df)
       value_per_acre_df = filter_value_per_acre(attempt_join_df)
       compute_capped_value_per_acre(value_per_acre_df)
@@ -57,6 +83,7 @@ def process_gdb(gdb_path, base_output_path, towns_df, render_image = False, over
     except Exception as e:
       print(f"An error occurred while processing data for {town_name}: {e}")
       missing_join.append(town_name)
-      continue
+    finally:
+      gc.collect()
   return missing_join
 

@@ -1,0 +1,898 @@
+{
+  "_notes": "Join strategies discovered for each CT town. ratio = merged_rows/parcel_rows (>1.0 means multiple CAMA rows per parcel, e.g. condos). transform = preprocessing needed.",
+  "andover": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.96
+  },
+  "avon": {
+    "parcel_key": "PARNO",
+    "cama_key": "PROP",
+    "ratio": 0.987,
+    "note": "Value and acres split across F1-F4 land feature columns; sum for total",
+    "value_cols_sum": [
+      "F1_VALUE",
+      "F2_VALUE",
+      "F3_VALUE",
+      "F4_VALUE"
+    ],
+    "acres_cols_sum": [
+      "F1_ACRES",
+      "F2_ACRES",
+      "F3_ACRES",
+      "F4_ACRES"
+    ]
+  },
+  "barkhamsted": {
+    "parcel_key": "Link",
+    "cama_key": "Map_Block_Lot_compound",
+    "ratio": 0.749,
+    "transform": "cama_compound_strip",
+    "cama_cols": [
+      "Map",
+      "Block",
+      "Lot"
+    ],
+    "sep": "-",
+    "note": "CAMA compound from Map-Block-Lot with whitespace stripping"
+  },
+  "berlin": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "bethel": {
+    "parcel_key": "Link",
+    "cama_key": "PARID",
+    "ratio": 0.98,
+    "transform": "strip_both",
+    "note": "Both keys need whitespace stripping",
+    "acres_col": "CALCACRES"
+  },
+  "bethany": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.04
+  },
+  "bloomfield": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 1.0
+  },
+  "bolton": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in CRCOG.gdb"
+  },
+  "bozrah": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 1.02
+  },
+  "branford": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.98
+  },
+  "bridgeport": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.27,
+    "note": "Many-to-one due to condos"
+  },
+  "bridgewater": {
+    "parcel_key": "MBL",
+    "cama_key": "Map_Block_compound",
+    "ratio": 1.017,
+    "transform": "bridgewater_compound",
+    "note": "MBL='33 10' normalized to '33 10' matches CAMA Map+' '+Block"
+  },
+  "bristol": {
+    "parcel_key": "link",
+    "cama_key": "Account_Number",
+    "ratio": 0.993,
+    "note": "Parcel key is lowercase 'link'"
+  },
+  "brookfield": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 1.0
+  },
+  "brooklyn": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.95
+  },
+  "burlington": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "canaan": {
+    "parcel_key": "UniqueID",
+    "cama_key": "PID",
+    "ratio": 0.949
+  },
+  "canton": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.98
+  },
+  "canterbury": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.96
+  },
+  "chaplin": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.97
+  },
+  "chester": {
+    "parcel_key": "Full_Num",
+    "cama_key": "Map",
+    "ratio": 1.07
+  },
+  "clinton": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.98
+  },
+  "colchester": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.98
+  },
+  "colebrook": {
+    "parcel_key": "UniqueID",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.95
+  },
+  "columbia": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in CRCOG.gdb"
+  },
+  "coventry": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.98
+  },
+  "cromwell": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 1.0
+  },
+  "danbury": {
+    "parcel_key": "JWS_PID",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.52,
+    "note": "Many-to-one"
+  },
+  "darien": {
+    "parcel_key": "REALESTATE",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "deep river": {
+    "no_working_join": true,
+    "note": "Parcel Lot format (3-C) doesn't match CAMA Lot format (22C) reliably"
+  },
+  "derby": {
+    "parcel_key": "Parcel_ID",
+    "cama_key": "UNIQUE_ID",
+    "ratio": 0.99,
+    "value_col": "TTL_VALUE",
+    "acres_col": "ACRES"
+  },
+  "durham": {
+    "no_working_join": true,
+    "note": "CAMA Lot is all None; cannot construct compound key"
+  },
+  "east granby": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.95
+  },
+  "east haddam": {
+    "parcel_key": "Full_Num",
+    "cama_key": "link",
+    "ratio": 1.018,
+    "transform": "strip_cama_prefix",
+    "cama_prefix_digits": 5,
+    "note": "CAMA link has '22280-' prefix; strip it to match Full_Num"
+  },
+  "east hartford": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "east hampton": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.98
+  },
+  "east haven": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.02
+  },
+  "east lyme": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "east windsor": {
+    "parcel_key": "Link",
+    "cama_key": "Account_Number",
+    "ratio": 0.66,
+    "note": "Weak join - partial match"
+  },
+  "easton": {
+    "parcel_key": "Parcel_ID",
+    "cama_key": "Map",
+    "ratio": 0.96
+  },
+  "eastford": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.01
+  },
+  "ellington": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 1.04
+  },
+  "enfield": {
+    "parcel_key": "GIS_ID",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.111,
+    "note": "More CAMA rows than parcels (some many-to-one)"
+  },
+  "essex": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.99
+  },
+  "fairfield": {
+    "parcel_key": "Parcel_ID",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.11
+  },
+  "farmington": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.72,
+    "note": "Weak join"
+  },
+  "franklin": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 1.01
+  },
+  "glastonbury": {
+    "parcel_key": "PropertyID",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.93
+  },
+  "goshen": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 1.0
+  },
+  "granby": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in CRCOG.gdb"
+  },
+  "greenwich": {
+    "parcel_key": "CAMALINK",
+    "cama_key": "PID",
+    "ratio": 1.01
+  },
+  "griswold": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.94
+  },
+  "groton": {
+    "no_working_join": true,
+    "note": "Parcel Link (12-digit number) doesn't match any CAMA field; CAMA Account_Number is also non-matching"
+  },
+  "guilford": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.03
+  },
+  "haddam": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 0.97
+  },
+  "hamden": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.0
+  },
+  "hampton": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.92
+  },
+  "hartford": {
+    "parcel_key": "GIS_PIN",
+    "cama_key": "GISTag",
+    "ratio": 25.9,
+    "as_number": true,
+    "note": "Very high ratio due to condos; GIS_PIN and GISTag are 9-digit parcel IDs",
+    "verified": true
+  },
+  "hartland": {
+    "parcel_key": "F_O_PIN",
+    "cama_key": "PID",
+    "ratio": 0.991
+  },
+  "harwinton": {
+    "parcel_key": "UniqueID",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.957
+  },
+  "hebron": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in CRCOG.gdb"
+  },
+  "kent": {
+    "parcel_key": "MAP_BL1",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.673
+  },
+  "killingworth": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.01
+  },
+  "killingly": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.01
+  },
+  "lebanon": {
+    "parcel_key": "AV_PID",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.983,
+    "as_number": true
+  },
+  "ledyard": {
+    "parcel_key": "Link",
+    "cama_key": "Map_Block_Lot_compound",
+    "ratio": 1.027,
+    "transform": "cama_int_compound",
+    "cama_cols": [
+      "Map",
+      "Block",
+      "Lot"
+    ],
+    "sep": "-",
+    "note": "CAMA compound Map-Block-Lot all as integers; matches Link format '144-1070-3'"
+  },
+  "lisbon": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.0
+  },
+  "litchfield": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "lyme": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.98
+  },
+  "madison": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.0
+  },
+  "manchester": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "mansfield": {
+    "parcel_key": "Parcel_Num",
+    "cama_key": "GIS_Tag",
+    "ratio": 6.38,
+    "note": "Very many-to-one; Mansfield data has many CAMA entries per parcel",
+    "verified": true
+  },
+  "marlborough": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.99
+  },
+  "meriden": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "middlebury": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "middlefield": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.98
+  },
+  "middletown": {
+    "parcel_key": "CAMA_ID",
+    "cama_key": "PID",
+    "ratio": 0.968
+  },
+  "milford": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.98
+  },
+  "monroe": {
+    "parcel_key": "Parcel_ID",
+    "cama_key": "Account_Number",
+    "ratio": 0.91
+  },
+  "montville": {
+    "parcel_key": "Full_Num",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.008,
+    "transform": "normalize_cama_gistag_montville",
+    "note": "CAMA GIS_Tag has '/' separator; replace with '-' to match Full_Num format '001-008-00A'"
+  },
+  "morris": {
+    "parcel_key": "UniqueID",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.959
+  },
+  "naugatuck": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "new britain": {
+    "parcel_key": "PID",
+    "cama_key": "Parcel_ID",
+    "ratio": 1.0
+  },
+  "new canaan": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 1.05
+  },
+  "new fairfield": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "new hartford": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in NHCOG.gdb"
+  },
+  "new haven": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "new london": {
+    "parcel_key": "Link",
+    "cama_key": "Map_Block_Lot_compound",
+    "ratio": 0.824,
+    "transform": "cama_int_compound_newlondon",
+    "cama_cols": [
+      "Map",
+      "Block",
+      "Lot"
+    ],
+    "sep": "-",
+    "note": "CAMA Map is string (e.g. 'F27'); Block and Lot as integers"
+  },
+  "new milford": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.82
+  },
+  "newington": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.01
+  },
+  "newtown": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.98
+  },
+  "norfolk": {
+    "parcel_key": "UniqueID",
+    "cama_key": "PID",
+    "ratio": 0.981
+  },
+  "north branford": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "north canaan": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in NHCOG.gdb"
+  },
+  "north haven": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.02
+  },
+  "north stonington": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.03
+  },
+  "norwalk": {
+    "parcel_key": "GIS_ID",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.34,
+    "note": "Many-to-one",
+    "verified": true
+  },
+  "norwich": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.97
+  },
+  "old lyme": {
+    "parcel_key": "Link",
+    "cama_key": "link",
+    "ratio": 0.935,
+    "transform": "strip_cama_prefix",
+    "cama_prefix_digits": 5,
+    "note": "CAMA link has '57040-' prefix; strip to match Parcel Link format '2-9'"
+  },
+  "old saybrook": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.99
+  },
+  "orange": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.96
+  },
+  "oxford": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 0.98,
+    "transform": "normalize_cama_map_oxford",
+    "note": "CAMA Map has spaces (e.g. '35 80 41'); replace spaces with hyphens to match Link format"
+  },
+  "plainfield": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.94
+  },
+  "plainville": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.01
+  },
+  "plymouth": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.02
+  },
+  "pomfret": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.95
+  },
+  "portland": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.96
+  },
+  "preston": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.98
+  },
+  "prospect": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.0
+  },
+  "putnam": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 8.19,
+    "note": "Very many-to-one",
+    "verified": true
+  },
+  "redding": {
+    "parcel_key": "GIS_ID",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.794
+  },
+  "ridgefield": {
+    "parcel_key": "Parcel_ID",
+    "cama_key": "Map",
+    "ratio": 1.04
+  },
+  "rocky hill": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in CRCOG.gdb"
+  },
+  "roxbury": {
+    "no_working_join": true,
+    "note": "CAMA Map format ('25/004') doesn't match parcel MAP ('4'); different systems"
+  },
+  "salem": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "salisbury": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "scotland": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.97
+  },
+  "seymour": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.02
+  },
+  "sharon": {
+    "parcel_key": "MAP_LOT1",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.653
+  },
+  "shelton": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.0
+  },
+  "sherman": {
+    "parcel_key": "JWS_PID",
+    "cama_key": "Gis_Full_Number",
+    "ratio": 0.975,
+    "transform": "truncate_parcel_key",
+    "parcel_key_length": 7,
+    "note": "CAMA has no appraised value or acreage columns (only assessment data)",
+    "no_working_join": true
+  },
+  "simsbury": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.04
+  },
+  "somers": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "south windsor": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.98
+  },
+  "southbury": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "southington": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 1.0
+  },
+  "sprague": {
+    "parcel_key": "Link",
+    "cama_key": "Map_Block_Lot_compound",
+    "ratio": 0.961,
+    "transform": "cama_zeropad_compound",
+    "cama_cols": [
+      "Map",
+      "Block",
+      "Lot"
+    ],
+    "sep": "-",
+    "pad_widths": [
+      2,
+      2,
+      2
+    ],
+    "note": "CAMA compound: Map(2d)-Block(2d)-Lot(2d) zero-padded; matches Link format '24-03-03'"
+  },
+  "stafford": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in CRCOG.gdb"
+  },
+  "stamford": {
+    "parcel_key": "UNQ_CARD",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.5,
+    "verified": true
+  },
+  "sterling": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.98
+  },
+  "stonington": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.98
+  },
+  "stratford": {
+    "parcel_key": "Parcel_ID",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.24
+  },
+  "suffield": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.03
+  },
+  "thomaston": {
+    "no_working_join": true,
+    "note": "CAMA PID is alphanumeric (A0000100); CAMA Map is None and Lot corrupted by Excel date formatting"
+  },
+  "thompson": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 0.99
+  },
+  "tolland": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.99
+  },
+  "torrington": {
+    "parcel_key": "PID",
+    "cama_key": "PID",
+    "ratio": 1.08
+  },
+  "trumbull": {
+    "parcel_key": "Parcel_ID",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.07
+  },
+  "union": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.93
+  },
+  "vernon": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.04
+  },
+  "voluntown": {
+    "parcel_key": "Link",
+    "cama_key": "Map",
+    "ratio": 1.01
+  },
+  "wallingford": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.98
+  },
+  "warren": {
+    "parcel_key": "UNIQUE_ID",
+    "cama_key": "Account",
+    "ratio": 0.914,
+    "value_col": "CAppraised_Total",
+    "acres_col": "Parcel_Area"
+  },
+  "washington": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.2
+  },
+  "waterbury": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.2
+  },
+  "waterford": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "watertown": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.0
+  },
+  "west hartford": {
+    "parcel_key": "Link",
+    "cama_key": "Account_Number",
+    "ratio": 0.99
+  },
+  "west haven": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.0
+  },
+  "westbrook": {
+    "parcel_key": "Link",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.92
+  },
+  "weston": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.01
+  },
+  "westport": {
+    "parcel_key": "MAP_BK_LOT",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.01
+  },
+  "wethersfield": {
+    "parcel_key": "GISID",
+    "cama_key": "GIS_Tag",
+    "ratio": 1.087,
+    "as_number": true,
+    "note": "GISID '001001' (str) = 1001 (int) matches GIS_Tag 1001.0"
+  },
+  "willington": {
+    "no_cama_layer": true,
+    "note": "Missing CAMA layer in CRCOG.gdb"
+  },
+  "wilton": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "windham": {
+    "parcel_key": "Link",
+    "cama_key": "Parcel_ID",
+    "ratio": 0.99
+  },
+  "windsor": {
+    "parcel_key": "FILECODE",
+    "cama_key": "GIS_Tag",
+    "ratio": 0.99
+  },
+  "windsor locks": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.02
+  },
+  "winchester": {
+    "parcel_key": "Map_Block_Lot_compound",
+    "cama_key": "PROP_ID",
+    "ratio": 0.605,
+    "transform": "winchester_compound",
+    "note": "Parcel: Map+' '+Block+' '+Lot; CAMA: PROP_ID split on '||' to get Map||Block||Lot"
+  },
+  "wolcott": {
+    "parcel_key": "Link",
+    "cama_key": "Account_Number",
+    "ratio": 1.0
+  },
+  "woodbridge": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.03
+  },
+  "woodbury": {
+    "parcel_key": "Link",
+    "cama_key": "PID",
+    "ratio": 1.06
+  },
+  "woodstock": {
+    "parcel_key": "Link",
+    "cama_key": "AV_PID",
+    "ratio": 1.0
+  }
+}

@@ -3,6 +3,8 @@ import pandas as pd
 AVPA_NAME = 'Appraised_Value_Per_Acre'
 
 def compute_value_per_acre(df):
+  df['Appraised_Total'] = pd.to_numeric(df['Appraised_Total'], errors='coerce')
+  df['Land_Acres'] = pd.to_numeric(df['Land_Acres'], errors='coerce')
   df[AVPA_NAME] = df['Appraised_Total'] / df['Land_Acres']
   # Explicitly convert the column to numeric, coercing errors
   df[AVPA_NAME] = pd.to_numeric(df[AVPA_NAME], errors='coerce')
