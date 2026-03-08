@@ -11,6 +11,7 @@ tippecanoe -zg \
   --simplification=3 \
   --minimum-detail=6 \
   --low-detail=11 \
+  # TODO: Try using a lower limit
   --maximum-tile-bytes=5000000 \
   --no-feature-limit \
   --coalesce-densest-as-needed \
