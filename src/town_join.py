@@ -157,6 +157,10 @@ def apply_transform(parcel_gdf, cama_gdf, entry):
         cama_gdf[compound_col] = cama_gdf[cols].apply(_zeropad_join, axis=1)
         cama_key = compound_col
 
+    elif transform == 'strip_cama_trailing_dash':
+        cama_gdf[cama_key] = cama_gdf[cama_key].astype(str).str.strip().str.rstrip('-')
+        parcel_gdf[parcel_key] = parcel_gdf[parcel_key].astype(str).str.strip()
+
     elif transform == 'normalize_cama_map_oxford':
         # Oxford: CAMA Map has spaces (e.g. '35 80 41'); replace with hyphens
         cama_gdf[cama_key] = cama_gdf[cama_key].astype(str).str.replace(' ', '-')
@@ -210,6 +214,91 @@ def apply_transform(parcel_gdf, cama_gdf, entry):
         parcel_key = parcel_compound
         cama_gdf[cama_key] = cama_gdf[cama_key].astype(str).apply(
             lambda v: ' '.join(p for p in v.split('||') if p.strip().strip('|')))
+
+    elif transform == 'durham_compound':
+        # Durham: Parcel Map-Lot matches CAMA Map-Block (CAMA Lot is all None)
+        parcel_compound = 'Map_Lot_compound'
+        parcel_gdf[parcel_compound] = (
+            parcel_gdf['Map'].astype(str).str.strip() + '-' +
+            parcel_gdf['Lot'].astype(str).str.strip()
+        )
+        cama_compound = 'Map_Block_compound'
+        cama_gdf[cama_compound] = (
+            cama_gdf['Map'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True) + '-' +
+            cama_gdf['Block'].astype(str).str.strip()
+        )
+        parcel_key = parcel_compound
+        cama_key = cama_compound
+
+    elif transform == 'groton_extract_account':
+        # Groton: Extract account_no from CAMA_Site_Link URL
+        cama_compound = 'account_from_link'
+        cama_gdf[cama_compound] = cama_gdf[cama_key].astype(str).str.extract(
+            r'account_no=(\d+)', expand=False)
+        cama_key = cama_compound
+
+    elif transform == 'roxbury_split_map':
+        # Roxbury: CAMA Map is 'PAGE/MAP' format (e.g. '25/004')
+        # Split and reconstruct as 'PAGE-MAP' with leading zeros stripped to match parcel MBL
+        cama_compound = 'Map_split_compound'
+        def _roxbury_split(v):
+            s = str(v)
+            if '/' in s:
+                p1, p2 = s.split('/', 1)
+                try:
+                    return f'{int(p1)}-{int(p2)}'
+                except ValueError:
+                    return s
+            return s
+        cama_gdf[cama_compound] = cama_gdf[cama_key].apply(_roxbury_split)
+        cama_key = cama_compound
+
+    elif transform == 'thomaston_uncorrupt':
+        # Thomaston: CAMA Block = Map, Lot = 'Block-Lot' but corrupted by Excel dates
+        # E.g. '4-Feb' was originally '4-2', 'Feb-32' was '2-32'
+        # Excel interprets 'N-M' as a date: '4-2' -> Feb 4 -> '4-Feb'
+        # So 'N-Mon' means original was 'N-MonthNumber' (month was second part)
+        # And 'Mon-N' means original was 'MonthNumber-N' (month was first part)
+        import calendar as _cal
+        _month_abbr = {m.lower(): f'{i:02d}' for i, m in enumerate(_cal.month_abbr) if m}
+        def _uncorrupt_lot(val):
+            if pd.isna(val):
+                return val
+            val = str(val).strip()
+            parts = val.split('-')
+            if len(parts) == 2:
+                p0, p1 = parts
+                if p1.lower() in _month_abbr:
+                    # 'N-Mon' -> month replaces second part: '4-Feb' -> '02-04'
+                    try:
+                        return f'{_month_abbr[p1.lower()]}-{int(p0):02d}'
+                    except ValueError:
+                        pass
+                if p0.lower() in _month_abbr:
+                    # 'Mon-N' -> month replaces first part: 'Feb-32' -> '02-32'
+                    try:
+                        return f'{_month_abbr[p0.lower()]}-{int(p1):02d}'
+                    except ValueError:
+                        pass
+            # Zero-pad numeric parts, pass through alpha parts
+            fixed = []
+            for p in parts:
+                pl = p.lower()
+                if pl in _month_abbr:
+                    fixed.append(_month_abbr[pl])
+                else:
+                    try:
+                        fixed.append(f'{int(p):02d}')
+                    except ValueError:
+                        fixed.append(p)
+            return '-'.join(fixed)
+
+        cama_compound = 'Block_Lot_compound'
+        cama_gdf[cama_compound] = (
+            cama_gdf[cama_key].astype(str).apply(lambda x: f'{int(x):02d}') + '-' +
+            cama_gdf['Lot'].apply(_uncorrupt_lot)
+        )
+        cama_key = cama_compound
 
     else:
         print(f"Warning: unknown transform '{transform}'")

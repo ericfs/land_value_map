@@ -80,11 +80,22 @@ def load_and_join(town_name, gdbs, towns_df):
         print(f"  Join produced empty result for {town_name}")
         return parcel_gdf, cama_gdf, None
 
-    # Apply column remapping (same as cog.py lines 52-75)
+    # Apply column remapping (same as cog.py)
     if 'value_col' in entry:
-        merged = merged.rename(columns={entry['value_col']: 'Appraised_Total'})
+        vc = entry['value_col']
+        for candidate in [vc, f'{vc}_x', f'{vc}_y']:
+            if candidate in merged.columns:
+                merged = merged.rename(columns={candidate: 'Appraised_Total'})
+                break
+        if 'value_multiplier' in entry:
+            merged['Appraised_Total'] = pd.to_numeric(
+                merged['Appraised_Total'], errors='coerce') * entry['value_multiplier']
     if 'acres_col' in entry:
-        merged = merged.rename(columns={entry['acres_col']: 'Land_Acres'})
+        ac = entry['acres_col']
+        for candidate in [ac, f'{ac}_x', f'{ac}_y']:
+            if candidate in merged.columns:
+                merged = merged.rename(columns={candidate: 'Land_Acres'})
+                break
     if 'value_cols_sum' in entry:
         merged['Appraised_Total'] = sum(
             pd.to_numeric(merged[c], errors='coerce').fillna(0)

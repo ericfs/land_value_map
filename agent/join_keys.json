@@ -162,7 +162,8 @@
   "cromwell": {
     "parcel_key": "Link",
     "cama_key": "Map",
-    "ratio": 1.0
+    "as_number": true,
+    "ratio": 0.98
   },
   "danbury": {
     "parcel_key": "JWS_PID",
@@ -173,11 +174,14 @@
   "darien": {
     "parcel_key": "REALESTATE",
     "cama_key": "PID",
+    "as_number": true,
     "ratio": 0.99
   },
   "deep river": {
-    "no_working_join": true,
-    "note": "Parcel Lot format (3-C) doesn't match CAMA Lot format (22C) reliably"
+    "parcel_key": "AV_PID",
+    "cama_key": "PID",
+    "as_number": true,
+    "ratio": 0.99
   },
   "derby": {
     "parcel_key": "Parcel_ID",
@@ -187,8 +191,11 @@
     "acres_col": "ACRES"
   },
   "durham": {
-    "no_working_join": true,
-    "note": "CAMA Lot is all None; cannot construct compound key"
+    "parcel_key": "Map",
+    "cama_key": "Map",
+    "transform": "durham_compound",
+    "ratio": 1.0,
+    "note": "Parcel Map-Lot matches CAMA Map-Block; CAMA Lot is all None"
   },
   "east granby": {
     "parcel_key": "Link",
@@ -296,8 +303,11 @@
     "ratio": 0.94
   },
   "groton": {
-    "no_working_join": true,
-    "note": "Parcel Link (12-digit number) doesn't match any CAMA field; CAMA Account_Number is also non-matching"
+    "parcel_key": "Link",
+    "cama_key": "CAMA_Site_Link",
+    "transform": "groton_extract_account",
+    "ratio": 1.2,
+    "note": "CAMA PID/Account_Number corrupted; extract account_no from CAMA_Site_Link URL"
   },
   "guilford": {
     "parcel_key": "Link",
@@ -633,8 +643,11 @@
     "note": "Missing CAMA layer in CRCOG.gdb"
   },
   "roxbury": {
-    "no_working_join": true,
-    "note": "CAMA Map format ('25/004') doesn't match parcel MAP ('4'); different systems"
+    "parcel_key": "MBL",
+    "cama_key": "Map",
+    "transform": "roxbury_split_map",
+    "ratio": 1.16,
+    "note": "CAMA Map format '25/004' -> split to '25-4' to match parcel MBL"
   },
   "salem": {
     "parcel_key": "Link",
@@ -654,6 +667,7 @@
   "seymour": {
     "parcel_key": "Link",
     "cama_key": "PID",
+    "as_number": true,
     "ratio": 1.02
   },
   "sharon": {
@@ -672,8 +686,11 @@
     "ratio": 0.975,
     "transform": "truncate_parcel_key",
     "parcel_key_length": 7,
-    "note": "CAMA has no appraised value or acreage columns (only assessment data)",
-    "no_working_join": true
+    "value_col": "Current_Assessment",
+    "value_multiplier": 1.4286,
+    "acres_col": "JWS_AREA",
+    "acres_source": "parcel",
+    "note": "CAMA has only assessment data; appraised = assessed / 0.70. Acres from parcel JWS_AREA."
   },
   "simsbury": {
     "parcel_key": "Link",
@@ -749,13 +766,17 @@
     "ratio": 1.03
   },
   "thomaston": {
-    "no_working_join": true,
-    "note": "CAMA PID is alphanumeric (A0000100); CAMA Map is None and Lot corrupted by Excel date formatting"
+    "parcel_key": "Link",
+    "cama_key": "Block",
+    "transform": "thomaston_uncorrupt",
+    "ratio": 0.98,
+    "note": "CAMA Lot corrupted by Excel date formatting; Block=Map, Lot=Block-Lot"
   },
   "thompson": {
     "parcel_key": "Link",
     "cama_key": "PID",
-    "ratio": 0.99
+    "as_number": true,
+    "ratio": 0.96
   },
   "tolland": {
     "parcel_key": "Link",
@@ -817,8 +838,8 @@
   },
   "watertown": {
     "parcel_key": "Link",
-    "cama_key": "PID",
-    "ratio": 1.0
+    "cama_key": "GIS_Tag",
+    "ratio": 0.95
   },
   "west hartford": {
     "parcel_key": "Link",
@@ -873,9 +894,11 @@
     "as_number": true
   },
   "windsor locks": {
-    "parcel_key": "Link",
-    "cama_key": "PID",
-    "ratio": 1.02
+    "parcel_key": "Parcel_ID",
+    "cama_key": "Map",
+    "transform": "strip_cama_trailing_dash",
+    "ratio": 0.9,
+    "note": "CAMA Map has trailing dash e.g. 048-101-009-"
   },
   "winchester": {
     "parcel_key": "Map_Block_Lot_compound",

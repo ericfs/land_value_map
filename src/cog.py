@@ -51,9 +51,22 @@ def process_gdb(gdb_path, base_output_path, towns_df, render_image = False, over
     try:
       entry = JOIN_KEYS.get(normalize_town_name(town_name), {})
       if 'value_col' in entry:
-        attempt_join_df = attempt_join_df.rename(columns={entry['value_col']: 'Appraised_Total'})
+        vc = entry['value_col']
+        # Handle merge suffix: try original, then _x (parcel), then _y (CAMA)
+        for candidate in [vc, f'{vc}_x', f'{vc}_y']:
+          if candidate in attempt_join_df.columns:
+            attempt_join_df = attempt_join_df.rename(columns={candidate: 'Appraised_Total'})
+            break
+        if 'value_multiplier' in entry:
+          import pandas as pd
+          attempt_join_df['Appraised_Total'] = pd.to_numeric(
+            attempt_join_df['Appraised_Total'], errors='coerce') * entry['value_multiplier']
       if 'acres_col' in entry:
-        attempt_join_df = attempt_join_df.rename(columns={entry['acres_col']: 'Land_Acres'})
+        ac = entry['acres_col']
+        for candidate in [ac, f'{ac}_x', f'{ac}_y']:
+          if candidate in attempt_join_df.columns:
+            attempt_join_df = attempt_join_df.rename(columns={candidate: 'Land_Acres'})
+            break
       if 'value_cols_sum' in entry:
         import pandas as pd
         attempt_join_df['Appraised_Total'] = sum(
