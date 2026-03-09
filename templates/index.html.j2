@@ -71,6 +71,17 @@
             font-size: 12px;
             padding: 2px;
         }
+        .parcel-popup table {
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .parcel-popup td {
+            padding: 2px 6px;
+        }
+        .parcel-popup td:first-child {
+            font-weight: bold;
+            text-align: right;
+        }
     </style>
 </head>
 
@@ -144,6 +155,38 @@
                 'minzoom': 6, // Only show this 3D layer at high zoom levels for performance
                 'paint': paint
             });
+
+            // Click handler — show popup with parcel details
+            map.on('click', 'parcels-3d', (e) => {
+                if (!e.features || e.features.length === 0) return;
+
+                const props = e.features[0].properties;
+                const appraised = props.Appraised_Total;
+                const acres = props.Land_Acres;
+                const perAcre = acres > 0 ? appraised / acres : 0;
+
+                const fmt = (v) => '$' + Math.round(v).toLocaleString();
+
+                const html = `<div class="parcel-popup"><table>
+                    <tr><td>Appraised Value</td><td>${fmt(appraised)}</td></tr>
+                    <tr><td>Land Area</td><td>${Number(acres).toFixed(3)} acres</td></tr>
+                    <tr><td>Value / Acre</td><td>${fmt(perAcre)}</td></tr>
+                </table></div>`;
+
+                new maplibregl.Popup()
+                    .setLngLat(e.lngLat)
+                    .setHTML(html)
+                    .addTo(map);
+            });
+
+            // Pointer cursor on hover
+            map.on('mouseenter', 'parcels-3d', () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'parcels-3d', () => {
+                map.getCanvas().style.cursor = '';
+            });
+
             map.touchPitch.enabled();
         });
     </script>
