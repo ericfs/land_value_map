@@ -29,6 +29,6 @@ if __name__ == '__main__':
 
   # Fetch towns whose parcel geometry is missing from the per-COG GDB files
   print("\nFetching missing towns from statewide parcel layer...")
-  failed = fetch_missing_towns(output_dir)
+  failed = fetch_missing_towns(output_dir, input_dir=input_dir)
   if failed:
     print(f"Failed to fetch: {failed}")
