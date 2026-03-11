@@ -62,7 +62,7 @@
   },
   "bolton": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in CRCOG.gdb"
+    "note": "No Parcels layer in CRCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "bozrah": {
     "parcel_key": "Link",
@@ -150,7 +150,7 @@
   },
   "columbia": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in CRCOG.gdb"
+    "note": "No Parcels layer in CRCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "coventry": {
     "parcel_key": "Parcel_ID",
@@ -290,7 +290,7 @@
   },
   "granby": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in CRCOG.gdb"
+    "note": "No Parcels layer in CRCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "greenwich": {
     "parcel_key": "CAMALINK",
@@ -350,7 +350,7 @@
   },
   "hebron": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in CRCOG.gdb"
+    "note": "No Parcels layer in CRCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "kent": {
     "parcel_key": "MAP_BL1",
@@ -489,7 +489,7 @@
   },
   "new hartford": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in NHCOG.gdb"
+    "note": "No Parcels layer in NHCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "new haven": {
     "parcel_key": "Link",
@@ -536,7 +536,7 @@
   },
   "north canaan": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in NHCOG.gdb"
+    "note": "No Parcels layer in NHCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "north haven": {
     "parcel_key": "Link",
@@ -640,7 +640,7 @@
   },
   "rocky hill": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in CRCOG.gdb"
+    "note": "No Parcels layer in CRCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "roxbury": {
     "parcel_key": "MBL",
@@ -737,7 +737,7 @@
   },
   "stafford": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in CRCOG.gdb"
+    "note": "No Parcels layer in CRCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "stamford": {
     "parcel_key": "UNQ_CARD",
@@ -875,7 +875,7 @@
   },
   "willington": {
     "no_cama_layer": true,
-    "note": "Missing CAMA layer in CRCOG.gdb"
+    "note": "No Parcels layer in CRCOG.gdb; fetched from statewide CAMA+Parcel layer"
   },
   "wilton": {
     "parcel_key": "Link",

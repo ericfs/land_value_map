@@ -1,6 +1,7 @@
 import argparse
 import os
 from cog import list_cog_gdb_files, process_gdb
+from fetch_missing_towns import fetch_missing_towns
 from multiprocessing import cpu_count
 from town_metadata import read_towns_df
 
@@ -25,3 +26,9 @@ if __name__ == '__main__':
   for gdb in cog_gdbs:
     missing_join.extend(process_gdb(gdb, output_dir, towns_df))
   print(missing_join)
+
+  # Fetch towns whose parcel geometry is missing from the per-COG GDB files
+  print("\nFetching missing towns from statewide parcel layer...")
+  failed = fetch_missing_towns(output_dir)
+  if failed:
+    print(f"Failed to fetch: {failed}")
