@@ -4,8 +4,16 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
 # Expects to be run from the project root directory.
+# Usage: ./scripts/build.sh [dev|prod]  (default: dev)
 
 set -euo pipefail
+
+env="${1:-dev}"
+
+if [[ "$env" != "dev" && "$env" != "prod" ]]; then
+  echo "Usage: $0 [dev|prod]" >&2
+  exit 1
+fi
 
 build_dir=$(pwd)
 
@@ -16,7 +24,7 @@ in_container() {
 
 if in_container; then
   # Running inside the dev container — execute the workflow directly.
-  ansible-playbook ansible/main.yml -e "working_dir=\"${build_dir}\""
+  ansible-playbook ansible/main.yml -e "working_dir=\"${build_dir}\" env=${env}"
 else
   # Running outside — build and run the dev container image.
   echo "Not inside a container. Building and running the dev container..."
@@ -27,5 +35,5 @@ else
     -v "${build_dir}:/workspaces/land_value_map" \
     -w /workspaces/land_value_map \
     land-value-map-build \
-    bash scripts/build.sh
+    bash scripts/build.sh "$env"
 fi

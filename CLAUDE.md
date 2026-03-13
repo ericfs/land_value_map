@@ -8,16 +8,21 @@ This project computes and maps land value per acre for every parcel in Connectic
 
 ## Build
 
-**Prerequisites:** If it does not already exist, copy `ansible/example.config.yml` to `ansible/config.yml` and fill in your MapTiler API key.
+**Prerequisites:** Copy the example config files and fill in your API keys:
+- `ansible/example.config.yml` → `ansible/config.yml` (shared settings)
+- `ansible/example.dev.yml` → `ansible/dev.yml` (local dev: localhost, gzipped tiles)
+- `ansible/example.prod.yml` → `ansible/prod.yml` (production: strongerhaven.org, no gzip)
 
 ```sh
 # From project root — runs inside dev container, or builds container first if outside
-./scripts/build.sh
+./scripts/build.sh          # defaults to dev
+./scripts/build.sh dev      # explicit dev build
+./scripts/build.sh prod     # production build
 ```
 
 Inside the dev container, this runs the Ansible playbook directly:
 ```sh
-ansible-playbook ansible/main.yml -e "working_dir=$(pwd)"
+ansible-playbook ansible/main.yml -e "working_dir=$(pwd) env=dev"
 ```
 
 To run the Python processing step alone:
@@ -60,13 +65,19 @@ inputs/
 
 Each GDB contains layers named `<Town>_Parcels` and `<Town>_2024_CAMA`. The join between them is the core difficulty (see `agent/notes.md` for known problematic towns).
 
-### Config (`ansible/config.yml`)
+### Config (`ansible/`)
+
+Config is split into a shared base and per-environment overrides:
+- `config.yml` — Shared settings (input paths, build dirs)
+- `dev.yml` — Dev overrides (localhost, gzipped tiles for nginx `gzip_static`)
+- `prod.yml` — Prod overrides (strongerhaven.org, no tile gzip)
 
 Key variables:
 - `maptiler_api_key` — Required for the map frontend
 - `build_dir` — Intermediate output (default: `tmp/`)
 - `deploy_dir` — Where the built site is deployed (default: `~/tmp/landvalue`)
 - `hostname` / `scheme` / `version` — Used to generate tile URLs in tile.json
+- `gzip_tiles` — Whether to pre-gzip `.pbf` tiles (true for dev, false for prod)
 
 ### Dev Container
 

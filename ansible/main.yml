@@ -3,6 +3,7 @@
   hosts: localhost
   vars_files:
     - "config.yml"
+    - "{{ env }}.yml"
 
   tasks:
     - name: Create build_dir folder.
@@ -45,6 +46,14 @@
         TILES_DIR: "{{ tiles_dir }}"
       when: not tiles_status.stat.exists
 
+    - name: Gzip tile files for static serving
+      ansible.builtin.shell: gzip -fk9 "{{ tiles_dir }}"/*/*/*.pbf
+      when: gzip_tiles | default(true)
+
+    - name: Remove stale gzipped tiles from build dir
+      ansible.builtin.shell: find "{{ tiles_dir }}" -name '*.pbf.gz' -delete
+      when: not (gzip_tiles | default(true))
+
     - name: Fill tile.json
       ansible.builtin.command:
         chdir: "{{ working_dir }}"
@@ -62,6 +71,7 @@
   hosts: localhost
   vars_files:
     - "config.yml"
+    - "{{ env }}.yml"
 
   tasks:
     - name: Create deployment folder.

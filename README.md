@@ -10,13 +10,21 @@ Used to generate https://map.strongerhaven.org
 
 ## Build and test
 
-- copy `example.config.yml` to `config.yml`.
-- Fill in API key.
+Copy the example config files and fill in your API keys:
+
+```sh
+cp ansible/example.config.yml ansible/config.yml
+cp ansible/example.dev.yml ansible/dev.yml      # for local dev
+cp ansible/example.prod.yml ansible/prod.yml    # for production
+```
+
+Then build:
 
 ```sh
 git clone https://github.com/ericfs/land_value_map.git
 cd land_value_map
-./scripts/build.sh
+./scripts/build.sh          # defaults to dev
+./scripts/build.sh prod     # production build
 ```
 
 Visit http://localhost:8080

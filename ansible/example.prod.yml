@@ -1,0 +1,15 @@
+# From Google
+google_analytics_id: "<GA_ID>"
+# From https://cloud.maptiler.com/account/keys/
+maptiler_api_key: "<PROD_API_KEY>"
+
+# Location where deployment will be stored
+deploy_dir: "{{ build_dir }}/landvalue"
+
+# tile.json parameters
+hostname: "map.strongerhaven.org"
+scheme: "https"
+version: 1
+
+# Prod tiles are served without pre-gzipping
+gzip_tiles: false

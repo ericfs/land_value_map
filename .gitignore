@@ -210,8 +210,10 @@ __marimo__/
 # Mac
 .DS_Store
 
-# Ansible Config
-config.yml
+# Ansible Config (contains secrets)
+ansible/config.yml
+ansible/dev.yml
+ansible/prod.yml
 
 tmp/
 inputs/

@@ -23,5 +23,3 @@ tippecanoe -zg \
   --accumulate-attribute=Land_Acres:sum \
   --output-to-directory="${TILES_DIR}" \
 "${GEOJSON_DIR}"/*.geojson
-
-gzip -fk9 "${TILES_DIR}"/*/*/*.pbf
