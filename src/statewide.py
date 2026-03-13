@@ -14,20 +14,10 @@ from export_geojson import export_geojson
 from town_name import town_name_to_file_name, normalize_town_name
 from value_per_acre import compute_value_per_acre, filter_value_per_acre, compute_capped_value_per_acre
 
-STATEWIDE_GDB = "5b462e9a-7190-47bf-a2ce-9b69d12ea06b.gdb"
 STATEWIDE_LAYER = "Connecticut_CAMA_and_Parcel_Layer"
 DROP_ROWS = {
     # This is the entire road network in a single parcel
     'shelton': ('Link', '40  40'),
-}
-# Towns where the statewide GDB has no value data;
-# join appraised values from the per-COG CAMA CSV instead.
-# (csv_path relative to input_dir, csv_join_col, gdb_join_col)
-CAMA_CSV_FALLBACK = {
-    'woodbridge': (
-        'Parcel Collection 2024/CAMA_By_COG/SCRCOG/Woodbridge_2024_CAMA.csv',
-        'PID', 'Link',
-    ),
 }
 
 
@@ -39,7 +29,17 @@ def drop_rows(df, town_name):
     return df
 
 
-def process_town(gdf, town_name, output_dir, input_dir=None):
+def find_cama_csv(cama_dir, town_name):
+    """Find a CAMA CSV for a town by searching cama_dir subdirectories."""
+    if not cama_dir:
+        return None
+    import glob
+    pattern = os.path.join(cama_dir, "**", f"{town_name}_2024_CAMA.csv")
+    matches = glob.glob(pattern, recursive=True)
+    return matches[0] if matches else None
+
+
+def process_town(gdf, town_name, output_dir, cama_dir=None):
     """Compute value per acre and export GeoJSON for a single town."""
     # Drop rows with null geometry and fix invalid geometries
     gdf = gdf[gdf.geometry.notna()].copy()
@@ -61,22 +61,21 @@ def process_town(gdf, town_name, output_dir, input_dir=None):
 
     # Fall back to CAMA CSV for towns with no value data in the statewide GDB
     if gdf["Appraised_Total"].sum() == 0:
-        norm = normalize_town_name(town_name)
-        if norm in CAMA_CSV_FALLBACK:
-            csv_path, csv_key, gdb_key = CAMA_CSV_FALLBACK[norm]
-            csv_path = os.path.join(input_dir, csv_path)
+        csv_path = find_cama_csv(cama_dir, town_name)
+        if csv_path:
             cama = pd.read_csv(csv_path)
-            gdf = gdf.merge(
-                cama[[csv_key, "Appraised Total"]].rename(
-                    columns={csv_key: gdb_key, "Appraised Total": "Appraised_Total_CSV"}
-                ),
-                on=gdb_key, how="left",
-            )
-            gdf["Appraised_Total"] = pd.to_numeric(
-                gdf["Appraised_Total_CSV"], errors="coerce"
-            ).fillna(0)
-            gdf = gdf.drop(columns=["Appraised_Total_CSV"])
-            print(f"\t\tUsing CAMA CSV for Appraised_Total for {town_name}")
+            if "Appraised Total" in cama.columns and "PID" in cama.columns:
+                gdf = gdf.merge(
+                    cama[["PID", "Appraised Total"]].rename(
+                        columns={"PID": "Link", "Appraised Total": "Appraised_Total_CSV"}
+                    ),
+                    on="Link", how="left",
+                )
+                gdf["Appraised_Total"] = pd.to_numeric(
+                    gdf["Appraised_Total_CSV"], errors="coerce"
+                ).fillna(0)
+                gdf = gdf.drop(columns=["Appraised_Total_CSV"])
+                print(f"\t\tUsing CAMA CSV for Appraised_Total for {town_name}")
 
     gdf["Land_Acres"] = pd.to_numeric(gdf["Land_Acres"], errors="coerce")
 
@@ -89,10 +88,10 @@ def process_town(gdf, town_name, output_dir, input_dir=None):
     return filename
 
 
-def process_statewide_gdb(input_dir, output_dir, overwrite=False):
+def process_statewide_gdb(output_dir, statewide_gdb, cama_dir=None, overwrite=False):
     """Read the statewide GDB town-by-town and process each.
     Returns list of towns that failed."""
-    gdb_path = os.path.join(input_dir, STATEWIDE_GDB)
+    gdb_path = statewide_gdb
 
     # First pass: get list of unique town names (no geometry, low memory)
     names_df = pyogrio.read_dataframe(
@@ -118,7 +117,7 @@ def process_statewide_gdb(input_dir, output_dir, overwrite=False):
                 on_invalid="fix",
             )
             print(f"\tProcessing {town_name} ({len(gdf)} parcels)")
-            process_town(gdf, town_name, output_dir, input_dir)
+            process_town(gdf, town_name, output_dir, cama_dir)
             print(f"\t\tExported {town_name}")
         except Exception as e:
             print(f"\t\tError processing {town_name}: {e}")

@@ -16,8 +16,9 @@
         argv:
           - "python3"
           - "{{ working_dir }}/src/main.py"
-          - "--input_dir=inputs"
           - "--output_dir={{ build_dir }}"
+          - "--statewide_gdb={{ statewide_gdb }}"
+          - "--cama_dir={{ cama_dir }}"
         chdir: "{{ working_dir }}"
         # creates: "{{ geojson_dir }}"
 
