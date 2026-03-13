@@ -19,7 +19,7 @@
           - "--input_dir=inputs"
           - "--output_dir={{ build_dir }}"
         chdir: "{{ working_dir }}"
-        creates: "{{ geojson_dir }}"
+        # creates: "{{ geojson_dir }}"
 
     - name: Check if map tiles already exist
       ansible.builtin.stat:
