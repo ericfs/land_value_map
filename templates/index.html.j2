@@ -15,6 +15,7 @@
     <title>3D Parcel Map</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <link href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <link href="geocoder.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js"></script>
     <style>
         body {
@@ -100,6 +101,11 @@
         <div id="gradient"></div>
     </div>
     <div class="attribution">© Stronger Haven {{ now().strftime('%Y') }}. <a href="https://github.com/ericfs/land_value_map">Github</a></div>
+    <div id="geocoder" class="geocoder">
+        <input id="geocoder-input" type="text" placeholder="Search for a location..." autocomplete="off" />
+        <button id="geocoder-clear" class="geocoder-clear" title="Clear">&times;</button>
+        <ul id="geocoder-results" class="geocoder-results"></ul>
+    </div>
 
     <script>
         // You'll need an API key from a basemap provider like Maptiler or Stadia.
@@ -190,6 +196,8 @@
             map.touchPitch.enabled();
         });
     </script>
+    <script src="geocoder.js"></script>
+    <script>initGeocoder(map);</script>
 
 </body>
 
