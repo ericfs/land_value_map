@@ -73,6 +73,10 @@
             font-size: 12px;
             padding: 2px;
         }
+        .title label {
+            cursor: pointer;
+            user-select: none;
+        }
         .parcel-popup table {
             border-collapse: collapse;
             font-size: 13px;
@@ -91,7 +95,10 @@
 
     <div id="map"></div>
     <div id="legend">
-        <h3 class="title">Appraised Value per Acre ($ / Acre)</h3>
+        <h3 class="title">
+            Appraised Value per Acre ($ / Acre)
+            <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
+        </h3>
         <div class="labels">
             <div class="zero label">0</div>
             <div class="one label">500K</div>
@@ -119,25 +126,16 @@
 
         const lvpa_expression = ["/", ["get", "Appraised_Total"], ["get", "Land_Acres"]];
 
-        paint = {
-            "fill-extrusion-color": [
-                "interpolate",
-                ["linear"],
-                lvpa_expression,
-                0,
-                "green",
-                500000,
-                "blue",
-                2000000,
-                "red",
-                10000000,
-                "yellow",
-                40000000,
-                "white",
-            ],
-            "fill-extrusion-opacity": 1,
-            "fill-extrusion-height": ["/", lvpa_expression, 5000],
-        }
+        const colorExpression = [
+            "interpolate",
+            ["linear"],
+            lvpa_expression,
+            0, "green",
+            500000, "blue",
+            2000000, "red",
+            10000000, "yellow",
+            40000000, "white",
+        ];
 
         let currentPopup = null;
 
@@ -170,28 +168,60 @@
                 url: '{{ version }}/tile.json' // <--- IMPORTANT
             });
 
-            // 2. ADD THE 3D PARCEL LAYER
+            // 2. ADD PARCEL LAYERS
             map.addLayer({
                 'id': 'parcels-3d',
-                'type': 'fill-extrusion', // This is the layer type for 3D polygons
-                'source': 'parcels-source', // The source ID we just defined
-                'source-layer': 'parcels', // <--- IMPORTANT: The name of the layer within your vector tiles
-                'minzoom': 6, // Only show this 3D layer at high zoom levels for performance
-                'paint': paint
+                'type': 'fill-extrusion',
+                'source': 'parcels-source',
+                'source-layer': 'parcels',
+                'minzoom': 6,
+                'paint': {
+                    'fill-extrusion-color': colorExpression,
+                    'fill-extrusion-opacity': 1,
+                    'fill-extrusion-height': ["/", lvpa_expression, 5000],
+                }
             });
+
+            map.addLayer({
+                'id': 'parcels-flat',
+                'type': 'fill',
+                'source': 'parcels-source',
+                'source-layer': 'parcels',
+                'minzoom': 6,
+                'layout': { 'visibility': 'none' },
+                'paint': {
+                    'fill-color': colorExpression,
+                    'fill-opacity': 0.85,
+                }
+            });
+
+            const parcelLayers = ['parcels-3d', 'parcels-flat'];
 
             // Click handler — show popup with parcel details
-            map.on('click', 'parcels-3d', (e) => {
-                if (!e.features || e.features.length === 0) return;
-                showParcelPopup(e.features[0].properties, e.lngLat);
+            parcelLayers.forEach(layer => {
+                map.on('click', layer, (e) => {
+                    if (!e.features || e.features.length === 0) return;
+                    showParcelPopup(e.features[0].properties, e.lngLat);
+                });
+                map.on('mouseenter', layer, () => {
+                    map.getCanvas().style.cursor = 'pointer';
+                });
+                map.on('mouseleave', layer, () => {
+                    map.getCanvas().style.cursor = '';
+                });
             });
 
-            // Pointer cursor on hover
-            map.on('mouseenter', 'parcels-3d', () => {
-                map.getCanvas().style.cursor = 'pointer';
-            });
-            map.on('mouseleave', 'parcels-3d', () => {
-                map.getCanvas().style.cursor = '';
+            // Extrusion toggle
+            document.getElementById('extrusion-toggle').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    map.setLayoutProperty('parcels-3d', 'visibility', 'visible');
+                    map.setLayoutProperty('parcels-flat', 'visibility', 'none');
+                    map.easeTo({ pitch: 45, bearing: -17.6 });
+                } else {
+                    map.setLayoutProperty('parcels-3d', 'visibility', 'none');
+                    map.setLayoutProperty('parcels-flat', 'visibility', 'visible');
+                    map.easeTo({ pitch: 0, bearing: 0 });
+                }
             });
 
             // Geocoding search control
@@ -205,10 +235,10 @@
             map.addControl(gc, 'top-left');
 
             gc.on('pick', function (e) {
-                if (!e.detail) return;
-                var coords = e.detail.center;
+                if (!e.feature) return;
+                var coords = e.feature.center;
                 var point = map.project(coords);
-                var features = map.queryRenderedFeatures(point, { layers: ['parcels-3d'] });
+                var features = map.queryRenderedFeatures(point, { layers: parcelLayers });
                 if (features.length === 1) {
                     showParcelPopup(features[0].properties, coords);
                 }
