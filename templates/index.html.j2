@@ -237,11 +237,13 @@
             gc.on('pick', function (e) {
                 if (!e.feature) return;
                 var coords = e.feature.center;
-                var point = map.project(coords);
-                var features = map.queryRenderedFeatures(point, { layers: parcelLayers });
-                if (features.length === 1) {
-                    showParcelPopup(features[0].properties, coords);
-                }
+                map.once('moveend', function () {
+                    var point = map.project(coords);
+                    var features = map.queryRenderedFeatures(point, { layers: parcelLayers });
+                    if (features.length === 1) {
+                        showParcelPopup(features[0].properties, coords);
+                    }
+                });
             });
 
             map.touchPitch.enabled();
