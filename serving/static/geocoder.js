@@ -58,6 +58,14 @@ function initGeocoder(map) {
             zoom: 15,
             essential: true
         });
+
+        map.once('moveend', function () {
+            var point = map.project(coords);
+            var features = map.queryRenderedFeatures(point, { layers: ['parcels-3d'] });
+            if (features.length === 1) {
+                showParcelPopup(features[0].properties, coords);
+            }
+        });
     }
 
     function renderResults(features) {
