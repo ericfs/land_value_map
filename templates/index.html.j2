@@ -15,8 +15,9 @@
     <title>3D Parcel Map</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <link href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css" rel="stylesheet" />
-    <link href="geocoder.css" rel="stylesheet" />
+    <link href="https://cdn.maptiler.com/maptiler-geocoding-control/v2.1.7/style.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js"></script>
+    <script src="https://cdn.maptiler.com/maptiler-geocoding-control/v2.1.7/maplibregl.umd.js"></script>
     <style>
         body {
             margin: 0;
@@ -101,11 +102,6 @@
         <div id="gradient"></div>
     </div>
     <div class="attribution">© Stronger Haven {{ now().strftime('%Y') }}. <a href="https://github.com/ericfs/land_value_map">Github</a></div>
-    <div id="geocoder" class="geocoder">
-        <input id="geocoder-input" type="text" placeholder="Search for a location..." autocomplete="off" />
-        <button id="geocoder-clear" class="geocoder-clear" title="Clear">&times;</button>
-        <ul id="geocoder-results" class="geocoder-results"></ul>
-    </div>
 
     <script>
         // You'll need an API key from a basemap provider like Maptiler or Stadia.
@@ -143,7 +139,11 @@
             "fill-extrusion-height": ["/", lvpa_expression, 5000],
         }
 
+        let currentPopup = null;
+
         function showParcelPopup(props, lngLat) {
+            if (currentPopup) currentPopup.remove();
+
             const appraised = props.Appraised_Total;
             const acres = props.Land_Acres;
             const perAcre = acres > 0 ? appraised / acres : 0;
@@ -155,7 +155,7 @@
                 <tr><td>Value / Acre</td><td>${fmt(perAcre)}</td></tr>
             </table></div>`;
 
-            new maplibregl.Popup()
+            currentPopup = new maplibregl.Popup()
                 .setLngLat(lngLat)
                 .setHTML(html)
                 .addTo(map);
@@ -194,11 +194,29 @@
                 map.getCanvas().style.cursor = '';
             });
 
+            // Geocoding search control
+            var gc = new maplibreglMaptilerGeocoder.GeocodingControl({
+                apiKey: apiKey,
+                placeholder: 'Search for a location...',
+                proximity: [-72.7, 41.6],
+                bbox: [-73.73, 40.95, -71.79, 42.05],
+                limit: 5
+            });
+            map.addControl(gc, 'top-left');
+
+            gc.on('pick', function (e) {
+                if (!e.detail) return;
+                var coords = e.detail.center;
+                var point = map.project(coords);
+                var features = map.queryRenderedFeatures(point, { layers: ['parcels-3d'] });
+                if (features.length === 1) {
+                    showParcelPopup(features[0].properties, coords);
+                }
+            });
+
             map.touchPitch.enabled();
         });
     </script>
-    <script src="geocoder.js"></script>
-    <script>initGeocoder(map);</script>
 
 </body>
 
