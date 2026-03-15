@@ -164,6 +164,12 @@
 
         let currentPopup = null;
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         function showParcelPopup(props, lngLat) {
             if (currentPopup) currentPopup.remove();
 
@@ -172,7 +178,14 @@
             const perAcre = acres > 0 ? appraised / acres : 0;
             const fmt = (v) => '$' + Math.round(v).toLocaleString();
 
+            let addressRow = '';
+            if (props.Location && props.Location.trim() !== '') {
+                const label = map.getZoom() >= 11 ? 'Address' : 'Near';
+                addressRow = `<tr><td>${label}</td><td>${escapeHtml(props.Location)}</td></tr>`;
+            }
+
             const html = `<div class="parcel-popup"><table>
+                ${addressRow}
                 <tr><td>Appraised Value</td><td>${fmt(appraised)}</td></tr>
                 <tr><td>Land Area</td><td>${Number(acres).toFixed(3)} acres</td></tr>
                 <tr><td>Value / Acre</td><td>${fmt(perAcre)}</td></tr>

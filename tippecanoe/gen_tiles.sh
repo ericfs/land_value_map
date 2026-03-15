@@ -11,7 +11,7 @@ tippecanoe -z12 \
   --simplification=3 \
   --minimum-detail=6 \
   --low-detail=11 \
-  --maximum-tile-bytes=2700000 \
+  --maximum-tile-bytes=3200000 \
   --no-feature-limit \
   --coalesce-densest-as-needed \
   --extend-zooms-if-still-dropping \

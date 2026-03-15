@@ -5,11 +5,11 @@ from shapely import force_2d
 # GeoJSON Export
 
 def df_for_geojson(df):
-  df = df[[
-    'Appraised_Total',
-    'Land_Acres',
-    'geometry'
-  ]]
+  cols = ['Appraised_Total', 'Land_Acres', 'geometry']
+  has_location = 'Location' in df.columns
+  if has_location:
+      cols.insert(0, 'Location')
+  df = df[cols]
 
   # Filter out extremely small parcels which are probably an error
   # or a building without land.
@@ -20,11 +20,14 @@ def df_for_geojson(df):
   # land acres are shared across units so take max.
   crs = df.crs
   df['_geom_wkb'] = df.geometry.apply(lambda g: g.wkb)
-  df = df.groupby('_geom_wkb').agg({
+  agg_dict = {
       'Appraised_Total': 'sum',
       'Land_Acres': 'max',
       'geometry': 'first',
-  }).reset_index(drop=True)
+  }
+  if has_location:
+      agg_dict['Location'] = 'first'
+  df = df.groupby('_geom_wkb').agg(agg_dict).reset_index(drop=True)
   df = gpd.GeoDataFrame(df, geometry='geometry', crs=crs)
 
   # Change to the coordinate system expected by tippecanoe
@@ -39,6 +42,9 @@ def df_for_geojson(df):
   # Round numeric columns to save file bytes
   df['Appraised_Total'] = df['Appraised_Total'].round(0).astype(int, errors='ignore')
   df['Land_Acres'] = df['Land_Acres'].round(3)
+
+  if has_location:
+      df['Location'] = df['Location'].fillna('')
 
   return df
 
