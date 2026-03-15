@@ -96,6 +96,7 @@
         <h3 class="title">
             Appraised Value per Acre ($ / Acre)
             <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
+            <label><input type="checkbox" id="exempt-toggle" checked /> Tax Exempt</label>
         </h3>
         <div class="labels">
             <div class="zero label">0</div>
@@ -151,7 +152,7 @@
 
         const lvpa_expression = ["/", ["get", "Appraised_Total"], ["get", "Land_Acres"]];
 
-        const colorExpression = [
+        const taxableColorExpression = [
             "interpolate",
             ["linear"],
             lvpa_expression,
@@ -160,6 +161,20 @@
             2000000, "red",
             10000000, "yellow",
             40000000, "white",
+        ];
+
+        const colorExpression = [
+            "case",
+            ["==", ["get", "Tax_Exempt"], 1],
+            "#555555",
+            taxableColorExpression,
+        ];
+
+        const extrusionHeightExpression = [
+            "case",
+            ["==", ["get", "Tax_Exempt"], 1],
+            0,
+            ["/", lvpa_expression, 5000],
         ];
 
         let currentPopup = null;
@@ -184,8 +199,14 @@
                 addressRow = `<tr><td>${label}</td><td>${escapeHtml(props.Location)}</td></tr>`;
             }
 
+            let exemptRow = '';
+            if (props.Tax_Exempt === 1) {
+                exemptRow = '<tr><td>Status</td><td>Tax Exempt</td></tr>';
+            }
+
             const html = `<div class="parcel-popup"><table>
                 ${addressRow}
+                ${exemptRow}
                 <tr><td>Appraised Value</td><td>${fmt(appraised)}</td></tr>
                 <tr><td>Land Area</td><td>${Number(acres).toFixed(3)} acres</td></tr>
                 <tr><td>Value / Acre</td><td>${fmt(perAcre)}</td></tr>
@@ -216,7 +237,7 @@
                 'paint': {
                     'fill-extrusion-color': colorExpression,
                     'fill-extrusion-opacity': 1,
-                    'fill-extrusion-height': ["/", lvpa_expression, 5000],
+                    'fill-extrusion-height': extrusionHeightExpression,
                 }
             });
 
@@ -260,6 +281,13 @@
                     map.setLayoutProperty('parcels-flat', 'visibility', 'visible');
                     map.easeTo({ pitch: 0, bearing: 0 });
                 }
+            });
+
+            // Tax exempt toggle
+            document.getElementById('exempt-toggle').addEventListener('change', (e) => {
+                const filter = e.target.checked ? null : ["!=", ["get", "Tax_Exempt"], 1];
+                map.setFilter('parcels-3d', filter);
+                map.setFilter('parcels-flat', filter);
             });
 
             map.touchPitch.enabled();

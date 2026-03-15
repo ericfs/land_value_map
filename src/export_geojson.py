@@ -7,8 +7,11 @@ from shapely import force_2d
 def df_for_geojson(df):
   cols = ['Appraised_Total', 'Land_Acres', 'geometry']
   has_location = 'Location' in df.columns
+  has_tax_exempt = 'Tax_Exempt' in df.columns
   if has_location:
       cols.insert(0, 'Location')
+  if has_tax_exempt:
+      cols.append('Tax_Exempt')
   df = df[cols]
 
   # Filter out extremely small parcels which are probably an error
@@ -27,6 +30,8 @@ def df_for_geojson(df):
   }
   if has_location:
       agg_dict['Location'] = 'first'
+  if has_tax_exempt:
+      agg_dict['Tax_Exempt'] = 'min'
   df = df.groupby('_geom_wkb').agg(agg_dict).reset_index(drop=True)
   df = gpd.GeoDataFrame(df, geometry='geometry', crs=crs)
 
@@ -45,6 +50,9 @@ def df_for_geojson(df):
 
   if has_location:
       df['Location'] = df['Location'].fillna('').str.strip().str.title()
+
+  if has_tax_exempt:
+      df['Tax_Exempt'] = df['Tax_Exempt'].astype(int)
 
   return df
 

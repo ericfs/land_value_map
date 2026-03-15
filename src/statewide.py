@@ -11,6 +11,7 @@ import pyogrio
 from shapely.validation import make_valid
 
 from export_geojson import export_geojson
+from tax_exempt import classify_tax_exempt
 from town_name import town_name_to_file_name, normalize_town_name
 from value_per_acre import compute_value_per_acre, filter_value_per_acre, compute_capped_value_per_acre
 
@@ -78,6 +79,7 @@ def process_town(gdf, town_name, output_dir, cama_dir=None):
                 print(f"\t\tUsing CAMA CSV for Appraised_Total for {town_name}")
 
     gdf["Land_Acres"] = pd.to_numeric(gdf["Land_Acres"], errors="coerce")
+    gdf["Tax_Exempt"] = classify_tax_exempt(gdf)
 
     compute_value_per_acre(gdf)
     gdf = filter_value_per_acre(gdf)
