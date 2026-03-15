@@ -33,15 +33,25 @@
 
         #legend {
             position: absolute;
-            top: 0;
+            bottom: 0;
             right: 0;
-            width: 50%;
+            min-width: 420px;
             border: 1px solid #000;
-            border-top: 0;
+            border-bottom: 0;
             border-right: 0;
-            border-radius: 0 0 0 4px;
+            border-radius: 4px 0 0 0;
             background: #fff;
             padding: 5px;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 420px) {
+            #legend {
+                min-width: 0;
+                width: 100%;
+                border-left: 0;
+                border-radius: 0;
+            }
         }
 
         #gradient {
@@ -60,18 +70,6 @@
         }
         .label {
             font-size: 10px;
-        }
-        .attribution {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            background: #fff;
-            border: 1px solid #000;
-            border-left: 0;
-            border-bottom: 0;
-            border-radius: 0 4px 0 0;
-            font-size: 12px;
-            padding: 2px;
         }
         .title label {
             cursor: pointer;
@@ -108,21 +106,48 @@
         </div>
         <div id="gradient"></div>
     </div>
-    <div class="attribution">© Stronger Haven {{ now().strftime('%Y') }}. <a href="https://github.com/ericfs/land_value_map">Github</a></div>
-
     <script>
         // You'll need an API key from a basemap provider like Maptiler or Stadia.
         // Get a free key from: https://www.maptiler.com/cloud/
         const apiKey = '{{ maptiler_api_key }}';
 
         const map = new maplibregl.Map({
-            container: 'map', // The container ID
-            style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${apiKey}`, // The basemap style
-            center: [-72.811096, 41.282098], // Initial map center [lng, lat]
-            zoom: 11, // Initial zoom level
-            pitch: 45, // Initial pitch in degrees to show the 3D effect
-            bearing: -17.6 // Initial bearing in degrees
+            container: 'map',
+            style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${apiKey}`,
+            center: [-72.811096, 41.282098],
+            zoom: 11,
+            pitch: 45,
+            bearing: -17.6,
+            attributionControl: false
         });
+
+        // Geocoding search control
+        var gc = new maplibreglMaptilerGeocoder.GeocodingControl({
+            apiKey: apiKey,
+            placeholder: 'Search for a location...',
+            proximity: [-72.75, 41.74],
+            bbox: [-73.73, 40.95, -71.79, 42.05],
+            limit: 5
+        });
+        map.addControl(gc, 'top-left');
+
+        const parcelLayers = [];
+        gc.on('pick', function (e) {
+            if (!e.feature) return;
+            var coords = e.feature.center;
+            map.once('moveend', function () {
+                var point = map.project(coords);
+                var features = map.queryRenderedFeatures(point, { layers: parcelLayers });
+                if (features.length === 1) {
+                    showParcelPopup(features[0].properties, coords);
+                }
+            });
+        });
+
+        map.addControl(new maplibregl.AttributionControl({
+            customAttribution: '© <a href="https://github.com/ericfs/land_value_map">Stronger Haven</a> {{ now().strftime('%Y') }}',
+            compact: true
+        }), 'top-left');
 
         const lvpa_expression = ["/", ["get", "Appraised_Total"], ["get", "Land_Acres"]];
 
@@ -195,7 +220,7 @@
                 }
             });
 
-            const parcelLayers = ['parcels-3d', 'parcels-flat'];
+            parcelLayers.push('parcels-3d', 'parcels-flat');
 
             // Click handler — show popup with parcel details
             parcelLayers.forEach(layer => {
@@ -222,28 +247,6 @@
                     map.setLayoutProperty('parcels-flat', 'visibility', 'visible');
                     map.easeTo({ pitch: 0, bearing: 0 });
                 }
-            });
-
-            // Geocoding search control
-            var gc = new maplibreglMaptilerGeocoder.GeocodingControl({
-                apiKey: apiKey,
-                placeholder: 'Search for a location...',
-                proximity: [-72.75, 41.74],
-                bbox: [-73.73, 40.95, -71.79, 42.05],
-                limit: 5
-            });
-            map.addControl(gc, 'top-left');
-
-            gc.on('pick', function (e) {
-                if (!e.feature) return;
-                var coords = e.feature.center;
-                map.once('moveend', function () {
-                    var point = map.project(coords);
-                    var features = map.queryRenderedFeatures(point, { layers: parcelLayers });
-                    if (features.length === 1) {
-                        showParcelPopup(features[0].properties, coords);
-                    }
-                });
             });
 
             map.touchPitch.enabled();
