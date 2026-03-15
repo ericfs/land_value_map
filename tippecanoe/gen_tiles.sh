@@ -5,7 +5,7 @@ set -euo pipefail
 GEOJSON_DIR="${GEOJSON_DIR:?GEOJSON_DIR must be set}"
 TILES_DIR="${TILES_DIR:?TILES_DIR must be set}"
 
-tippecanoe -zg \
+tippecanoe -z12 \
   --no-tile-compression \
   --force \
   --simplification=3 \
