@@ -44,7 +44,7 @@ def df_for_geojson(df):
   df['Land_Acres'] = df['Land_Acres'].round(3)
 
   if has_location:
-      df['Location'] = df['Location'].fillna('')
+      df['Location'] = df['Location'].fillna('').str.strip().str.title()
 
   return df
 
