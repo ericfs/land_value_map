@@ -96,7 +96,7 @@
         <h3 class="title">
             Appraised Value per Acre ($ / Acre)
             <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
-            <label><input type="checkbox" id="exempt-toggle" checked /> Tax Exempt</label>
+            <label><input type="checkbox" id="exempt-toggle" checked /> Include Tax Exempt</label>
         </h3>
         <div class="labels">
             <div class="zero label">0</div>
@@ -152,7 +152,7 @@
 
         const lvpa_expression = ["/", ["get", "Appraised_Total"], ["get", "Land_Acres"]];
 
-        const taxableColorExpression = [
+        const normalColorExpression = [
             "interpolate",
             ["linear"],
             lvpa_expression,
@@ -163,18 +163,20 @@
             40000000, "white",
         ];
 
-        const colorExpression = [
+        const exemptColorExpression = [
             "case",
             ["==", ["get", "Tax_Exempt"], 1],
             "#555555",
-            taxableColorExpression,
+            normalColorExpression,
         ];
 
-        const extrusionHeightExpression = [
+        const normalHeightExpression = ["/", lvpa_expression, 5000];
+
+        const exemptHeightExpression = [
             "case",
             ["==", ["get", "Tax_Exempt"], 1],
             0,
-            ["/", lvpa_expression, 5000],
+            normalHeightExpression,
         ];
 
         let currentPopup = null;
@@ -235,9 +237,9 @@
                 'source-layer': 'parcels',
                 'minzoom': 6,
                 'paint': {
-                    'fill-extrusion-color': colorExpression,
+                    'fill-extrusion-color': normalColorExpression,
                     'fill-extrusion-opacity': 1,
-                    'fill-extrusion-height': extrusionHeightExpression,
+                    'fill-extrusion-height': normalHeightExpression,
                 }
             });
 
@@ -249,7 +251,7 @@
                 'minzoom': 6,
                 'layout': { 'visibility': 'none' },
                 'paint': {
-                    'fill-color': colorExpression,
+                    'fill-color': normalColorExpression,
                     'fill-opacity': 0.85,
                 }
             });
@@ -285,9 +287,17 @@
 
             // Tax exempt toggle
             document.getElementById('exempt-toggle').addEventListener('change', (e) => {
-                const filter = e.target.checked ? null : ["!=", ["get", "Tax_Exempt"], 1];
-                map.setFilter('parcels-3d', filter);
-                map.setFilter('parcels-flat', filter);
+                if (e.target.checked) {
+                    // Include tax exempt: treat all parcels the same
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-color', normalColorExpression);
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-height', normalHeightExpression);
+                    map.setPaintProperty('parcels-flat', 'fill-color', normalColorExpression);
+                } else {
+                    // Exclude tax exempt: grey color, 0 height
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-color', exemptColorExpression);
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-height', exemptHeightExpression);
+                    map.setPaintProperty('parcels-flat', 'fill-color', exemptColorExpression);
+                }
             });
 
             map.touchPitch.enabled();
