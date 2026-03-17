@@ -65,15 +65,28 @@ Partial exemptions applied to otherwise taxable property (veterans, disabled, bl
 
 ## What the Statewide GDB Actually Contains
 
-The statewide GDB (`Connecticut_CAMA_and_Parcel_Layer`) does **not** use the official OPM alphabetic exempt codes in its `State_Use` column. Instead, it contains CAMA vendor codes (e.g., from Vision Government Solutions) where:
+The statewide GDB (`Connecticut_CAMA_and_Parcel_Layer`) does **not** use the official OPM alphabetic exempt codes in its `State_Use` column. Zero 4-character alphabetic codes (AAAX, BAAX, etc.) appear in the data. Instead, it contains CAMA vendor codes (e.g., from Vision Government Solutions) where:
 
-- **Numeric codes 100–800** generally correspond to the OPM taxable categories above
-- **Numeric codes 900+** are vendor-specific codes mapping to exempt property types (municipal, church, school, cemetery, state land, etc.)
-- **Alphanumeric codes** like `903V`, `MDL-01` are vendor model variants
+- **Codes NOT starting with "9"** (e.g., 100–800, 1010, 1040, 3800, 6100) are taxable property
+- **Codes starting with "9"** (900–999, 9000–9999, and alphanumeric variants like 903V, 901V, 908V) are exempt property types (municipal, church, school, cemetery, state, housing authority, non-profit, condo common areas, etc.)
 - There are **1,796 distinct State_Use values** and **4,327 distinct State_Use_Description values** across 1,282,833 parcels — significant inconsistency across towns
 
-Because the vendor codes are not standardized, we classify tax-exempt parcels using **keyword matching on `State_Use_Description`** rather than code ranges.
+**Important**: Codes like 1010 (Single Family), 1040 (Two Family), 6100 (Forest), 7000 (Farm) are numerically >= 900 but are NOT exempt. The correct test is whether the code **starts with digit "9"**, not whether it is >= 900.
 
 ## Classification Approach
 
-We use `State_Use_Description` keyword matching (case-insensitive) to identify exempt parcels. See `src/tax_exempt.py` for the implementation and `src/analyze_state_use.py` for a utility to audit the classification against the full dataset.
+We use a two-pronged approach (see `src/tax_exempt.py`):
+
+1. **Primary**: `State_Use` code starts with digit "9" → exempt
+2. **Fallback**: `State_Use_Description` contains exempt keywords (exempt, church, municipal, cemetery, religious, charitable) → exempt
+3. **Override**: Descriptions containing "NonExempt" / "Non-Exempt" are excluded
+
+Use `src/analyze_state_use.py` to audit the classification. Supports `--town` flag for per-town analysis.
+
+## Validation: New Haven
+
+New Haven was used as the validation case (expected ~50% exempt by area):
+- **41.2% exempt** (3,775 acres / 9,163 total) — 2,328 parcels
+- **58.8% taxable** (5,388 acres) — 24,923 parcels
+- Top taxable: Single Family (1,781 ac), Two Family (641 ac), Three Family (399 ac), Apartments, Industrial
+- Top exempt: Recreational Facilities (312 ac), Yale/PVT COLL (243 ac), State Recreation (239 ac), Municipal (215 ac)

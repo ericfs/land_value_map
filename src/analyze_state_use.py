@@ -1,15 +1,14 @@
 """Analyze State_Use and State_Use_Description from the statewide GDB.
 
 Standalone utility to inspect the full set of codes and validate
-the keyword-based tax-exempt classification logic.
+the tax-exempt classification logic.
 
 Usage:
-    python3 analyze_state_use.py [--gdb PATH]
+    python3 analyze_state_use.py [--gdb PATH] [--town TOWN_NAME]
 """
 
 import argparse
 import os
-import sys
 
 import pandas as pd
 import pyogrio
@@ -23,64 +22,79 @@ DEFAULT_GDB = os.path.join(
 )
 
 
-def load_state_use(gdb_path):
-    """Read only State_Use and State_Use_Description (no geometry)."""
+def load_data(gdb_path, town=None):
+    """Read State_Use, State_Use_Description, and Land_Acres (no geometry)."""
+    columns = ["State_Use", "State_Use_Description", "Land_Acres", "Town_Name"]
+    where = None
+    if town:
+        where = f"Town_Name = '{town}' OR Town_Name = '{town} '"
     return pyogrio.read_dataframe(
         gdb_path, layer=STATEWIDE_LAYER,
-        columns=["State_Use", "State_Use_Description"],
-        read_geometry=False,
+        columns=columns, read_geometry=False,
+        where=where,
     )
 
 
-def analyze(gdb_path):
-    print(f"Reading {gdb_path} ...")
-    df = load_state_use(gdb_path)
-    print(f"Total parcels: {len(df):,}\n")
+def analyze(gdb_path, town=None):
+    label = f" for {town}" if town else ""
+    print(f"Reading {gdb_path}{label} ...")
+    df = load_data(gdb_path, town)
+    df["Land_Acres"] = pd.to_numeric(df["Land_Acres"], errors="coerce").fillna(0)
+    total_acres = df["Land_Acres"].sum()
+    print(f"Total parcels: {len(df):,}")
+    print(f"Total acres:   {total_acres:,.1f}\n")
 
     # Classify
     df["Tax_Exempt"] = classify_tax_exempt(df)
 
-    # Group by (State_Use, State_Use_Description)
-    grouped = (
-        df.groupby(["State_Use", "State_Use_Description", "Tax_Exempt"])
-        .size()
-        .reset_index(name="count")
-        .sort_values(["Tax_Exempt", "count"], ascending=[False, False])
-    )
-
     # Summary
-    exempt_parcels = df["Tax_Exempt"].sum()
-    taxable_parcels = len(df) - exempt_parcels
-    print(f"Tax-exempt parcels: {exempt_parcels:,}")
-    print(f"Taxable parcels:    {taxable_parcels:,}")
+    exempt = df[df["Tax_Exempt"]]
+    taxable = df[~df["Tax_Exempt"]]
+    exempt_acres = exempt["Land_Acres"].sum()
+    taxable_acres = taxable["Land_Acres"].sum()
+    pct = (exempt_acres / total_acres * 100) if total_acres > 0 else 0
+
+    print(f"Tax-exempt: {len(exempt):,} parcels, {exempt_acres:,.1f} acres ({pct:.1f}%)")
+    print(f"Taxable:    {len(taxable):,} parcels, {taxable_acres:,.1f} acres ({100 - pct:.1f}%)")
     print()
 
-    # Print exempt entries
-    exempt = grouped[grouped["Tax_Exempt"]].copy()
-    print(f"=== EXEMPT descriptions ({len(exempt)} unique code/description pairs) ===")
+    # Group by (State_Use, State_Use_Description)
     pd.set_option("display.max_rows", None)
     pd.set_option("display.max_colwidth", 80)
     pd.set_option("display.width", 200)
-    print(exempt[["State_Use", "State_Use_Description", "count"]].to_string(index=False))
+
+    grouped = df.groupby(["State_Use", "State_Use_Description", "Tax_Exempt"]).agg(
+        count=("Land_Acres", "size"),
+        acres=("Land_Acres", "sum"),
+    ).reset_index().sort_values(["Tax_Exempt", "acres"], ascending=[False, False])
+
+    # Print exempt entries
+    exempt_g = grouped[grouped["Tax_Exempt"]].copy()
+    exempt_g["acres"] = exempt_g["acres"].round(1)
+    print(f"=== EXEMPT ({len(exempt_g)} unique code/description pairs) ===")
+    print(exempt_g[["State_Use", "State_Use_Description", "count", "acres"]].to_string(index=False))
     print()
 
     # Print taxable entries with descriptions that might look exempt (for auditing)
-    taxable = grouped[~grouped["Tax_Exempt"]].copy()
-    lower_desc = taxable["State_Use_Description"].str.lower().fillna("")
-    suspect = taxable[
+    taxable_g = grouped[~grouped["Tax_Exempt"]].copy()
+    lower_desc = taxable_g["State_Use_Description"].str.lower().fillna("")
+    suspect = taxable_g[
         lower_desc.str.contains("|".join(EXEMPT_KEYWORDS), na=False)
     ]
     if len(suspect) > 0:
+        suspect = suspect.copy()
+        suspect["acres"] = suspect["acres"].round(1)
         print(f"=== TAXABLE entries matching exempt keywords (review these) ===")
-        print(suspect[["State_Use", "State_Use_Description", "count"]].to_string(index=False))
+        print(suspect[["State_Use", "State_Use_Description", "count", "acres"]].to_string(index=False))
         print()
 
-    print("Keywords used:", EXEMPT_KEYWORDS)
+    print("Exempt keywords:", EXEMPT_KEYWORDS)
     print("Exclusion keywords:", NON_EXEMPT_KEYWORDS)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze State_Use codes")
     parser.add_argument("--gdb", default=DEFAULT_GDB, help="Path to statewide GDB")
+    parser.add_argument("--town", default=None, help="Filter to a single town")
     args = parser.parse_args()
-    analyze(args.gdb)
+    analyze(args.gdb, args.town)
