@@ -149,8 +149,9 @@
         <div id="options">
             <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
             <label><input type="checkbox" id="exempt-toggle" checked /> Include Tax Exempt</label>
-            <span class="help-icon" id="exempt-help">?
-                <span class="help-tooltip">Tax-exempt status is a best guess based on State Use codes in the CT parcel data. This may not match official town records exactly. See <a href="https://github.com/ericfs/land_value_map/tree/main/agent/state_use_codes.md">notes</a>.</span>
+            <span class="help-icon">
+                <span id="exempt-help">?</span>
+                <span class="help-tooltip">Tax-exempt status is a best guess based on State Use codes in the CT parcel data. This may not match official town records exactly. See <a href="https://github.com/ericfs/land_value_map/tree/main/agent/state_use_codes.md" target="_blank">notes</a>.</span>
             </span>
         </div>
     </div>
@@ -159,10 +160,10 @@
         document.getElementById('exempt-help').addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            this.querySelector('.help-tooltip').classList.toggle('visible');
+            document.querySelector('.help-icon .help-tooltip').classList.toggle('visible');
         });
         document.addEventListener('click', function () {
-            var tip = document.querySelector('#exempt-help .help-tooltip');
+            var tip = document.querySelector('.help-icon .help-tooltip');
             if (tip) tip.classList.remove('visible');
         });
 
@@ -204,7 +205,7 @@
         });
 
         map.addControl(new maplibregl.AttributionControl({
-            customAttribution: '© <a href="https://github.com/ericfs/land_value_map">Stronger Haven</a> {{ now().strftime('%Y') }}',
+            customAttribution: '© <a href="https://github.com/ericfs/land_value_map" target="_blank">Stronger Haven</a> {{ now().strftime('%Y') }}',
             compact: true
         }), 'top-left');
 
