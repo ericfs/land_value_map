@@ -75,6 +75,48 @@
             cursor: pointer;
             user-select: none;
         }
+        #options {
+            text-align: center;
+            margin: 5px 0;
+        }
+        .help-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            line-height: 14px;
+            border-radius: 50%;
+            background: #888;
+            color: #fff;
+            font-size: 10px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        .help-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 22px;
+            right: -10px;
+            width: 260px;
+            background: #333;
+            color: #fff;
+            font-size: 12px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            line-height: 1.4;
+            z-index: 10;
+            text-align: left;
+            font-weight: normal;
+        }
+        .help-tooltip a {
+            color: #ccc;
+        }
+        .help-icon:hover .help-tooltip,
+        .help-tooltip.visible {
+            display: block;
+        }
         .parcel-popup table {
             border-collapse: collapse;
             font-size: 13px;
@@ -95,8 +137,6 @@
     <div id="legend">
         <h3 class="title">
             Appraised Value per Acre ($ / Acre)
-            <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
-            <label><input type="checkbox" id="exempt-toggle" checked /> Include Tax Exempt</label>
         </h3>
         <div class="labels">
             <div class="zero label">0</div>
@@ -106,8 +146,26 @@
             <div class="four label">40M</div>
         </div>
         <div id="gradient"></div>
+        <div id="options">
+            <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
+            <label><input type="checkbox" id="exempt-toggle" checked /> Include Tax Exempt</label>
+            <span class="help-icon" id="exempt-help">?
+                <span class="help-tooltip">Tax-exempt status is a best guess based on State Use codes in the CT parcel data. This may not match official town records exactly. See <a href="https://github.com/ericfs/land_value_map/tree/main/agent/state_use_codes.md">notes</a>.</span>
+            </span>
+        </div>
     </div>
     <script>
+        // Toggle help tooltip on click (for touch devices)
+        document.getElementById('exempt-help').addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.querySelector('.help-tooltip').classList.toggle('visible');
+        });
+        document.addEventListener('click', function () {
+            var tip = document.querySelector('#exempt-help .help-tooltip');
+            if (tip) tip.classList.remove('visible');
+        });
+
         // You'll need an API key from a basemap provider like Maptiler or Stadia.
         // Get a free key from: https://www.maptiler.com/cloud/
         const apiKey = '{{ maptiler_api_key }}';
