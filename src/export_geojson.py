@@ -1,5 +1,6 @@
 import os
 import geopandas as gpd
+import pandas as pd
 from shapely import force_2d
 
 # GeoJSON Export
@@ -7,6 +8,14 @@ from shapely import force_2d
 def df_for_geojson(df):
   cols = ['Appraised_Total', 'Land_Acres', 'geometry']
   has_location = 'Location' in df.columns
+
+  # Detect when Location is obviously wrong (e.g., a town code like "93" for
+  # every parcel in New Haven) and fall back to Location_1 if available.
+  if has_location and 'Location_1' in df.columns:
+      unique_vals = df['Location'].dropna().str.strip().replace('', pd.NA).dropna().unique()
+      if len(unique_vals) <= 1:
+          df = df.drop(columns=['Location']).rename(columns={'Location_1': 'Location'})
+
   if has_location:
       cols.insert(0, 'Location')
   df = df[cols]
