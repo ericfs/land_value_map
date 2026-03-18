@@ -21,5 +21,6 @@ tippecanoe -z12 \
   -l parcels \
   --accumulate-attribute=Appraised_Total:sum \
   --accumulate-attribute=Land_Acres:sum \
+  --accumulate-attribute=Tax_Exempt:min \
   --output-to-directory="${TILES_DIR}" \
 "${GEOJSON_DIR}"/*.geojson

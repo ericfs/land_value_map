@@ -75,6 +75,48 @@
             cursor: pointer;
             user-select: none;
         }
+        #options {
+            text-align: center;
+            margin: 5px 0;
+        }
+        .help-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            line-height: 14px;
+            border-radius: 50%;
+            background: #888;
+            color: #fff;
+            font-size: 10px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        .help-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 22px;
+            right: -10px;
+            width: 260px;
+            background: #333;
+            color: #fff;
+            font-size: 12px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            line-height: 1.4;
+            z-index: 10;
+            text-align: left;
+            font-weight: normal;
+        }
+        .help-tooltip a {
+            color: #ccc;
+        }
+        .help-icon:hover .help-tooltip,
+        .help-tooltip.visible {
+            display: block;
+        }
         .parcel-popup table {
             border-collapse: collapse;
             font-size: 13px;
@@ -95,7 +137,6 @@
     <div id="legend">
         <h3 class="title">
             Appraised Value per Acre ($ / Acre)
-            <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
         </h3>
         <div class="labels">
             <div class="zero label">0</div>
@@ -105,8 +146,26 @@
             <div class="four label">40M</div>
         </div>
         <div id="gradient"></div>
+        <div id="options">
+            <label><input type="checkbox" id="extrusion-toggle" checked /> 3D</label>
+            <label><input type="checkbox" id="exempt-toggle" checked /> Include Tax Exempt</label>
+            <span class="help-icon" id="exempt-help">?
+                <span class="help-tooltip">Tax-exempt status is a best guess based on State Use codes in the CT parcel data. This may not match official town records exactly. See <a href="https://github.com/ericfs/land_value_map/tree/main/agent/state_use_codes.md">notes</a>.</span>
+            </span>
+        </div>
     </div>
     <script>
+        // Toggle help tooltip on click (for touch devices)
+        document.getElementById('exempt-help').addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.querySelector('.help-tooltip').classList.toggle('visible');
+        });
+        document.addEventListener('click', function () {
+            var tip = document.querySelector('#exempt-help .help-tooltip');
+            if (tip) tip.classList.remove('visible');
+        });
+
         // You'll need an API key from a basemap provider like Maptiler or Stadia.
         // Get a free key from: https://www.maptiler.com/cloud/
         const apiKey = '{{ maptiler_api_key }}';
@@ -151,7 +210,7 @@
 
         const lvpa_expression = ["/", ["get", "Appraised_Total"], ["get", "Land_Acres"]];
 
-        const colorExpression = [
+        const normalColorExpression = [
             "interpolate",
             ["linear"],
             lvpa_expression,
@@ -160,6 +219,22 @@
             2000000, "red",
             10000000, "yellow",
             40000000, "white",
+        ];
+
+        const exemptColorExpression = [
+            "case",
+            ["==", ["get", "Tax_Exempt"], 1],
+            "#555555",
+            normalColorExpression,
+        ];
+
+        const normalHeightExpression = ["/", lvpa_expression, 5000];
+
+        const exemptHeightExpression = [
+            "case",
+            ["==", ["get", "Tax_Exempt"], 1],
+            0,
+            normalHeightExpression,
         ];
 
         let currentPopup = null;
@@ -184,8 +259,14 @@
                 addressRow = `<tr><td>${label}</td><td>${escapeHtml(props.Location)}</td></tr>`;
             }
 
+            let exemptRow = '';
+            if (props.Tax_Exempt === 1) {
+                exemptRow = '<tr><td>Status</td><td>Tax Exempt</td></tr>';
+            }
+
             const html = `<div class="parcel-popup"><table>
                 ${addressRow}
+                ${exemptRow}
                 <tr><td>Appraised Value</td><td>${fmt(appraised)}</td></tr>
                 <tr><td>Land Area</td><td>${Number(acres).toFixed(3)} acres</td></tr>
                 <tr><td>Value / Acre</td><td>${fmt(perAcre)}</td></tr>
@@ -214,9 +295,9 @@
                 'source-layer': 'parcels',
                 'minzoom': 6,
                 'paint': {
-                    'fill-extrusion-color': colorExpression,
+                    'fill-extrusion-color': normalColorExpression,
                     'fill-extrusion-opacity': 1,
-                    'fill-extrusion-height': ["/", lvpa_expression, 5000],
+                    'fill-extrusion-height': normalHeightExpression,
                 }
             });
 
@@ -228,7 +309,7 @@
                 'minzoom': 6,
                 'layout': { 'visibility': 'none' },
                 'paint': {
-                    'fill-color': colorExpression,
+                    'fill-color': normalColorExpression,
                     'fill-opacity': 0.85,
                 }
             });
@@ -259,6 +340,21 @@
                     map.setLayoutProperty('parcels-3d', 'visibility', 'none');
                     map.setLayoutProperty('parcels-flat', 'visibility', 'visible');
                     map.easeTo({ pitch: 0, bearing: 0 });
+                }
+            });
+
+            // Tax exempt toggle
+            document.getElementById('exempt-toggle').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    // Include tax exempt: treat all parcels the same
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-color', normalColorExpression);
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-height', normalHeightExpression);
+                    map.setPaintProperty('parcels-flat', 'fill-color', normalColorExpression);
+                } else {
+                    // Exclude tax exempt: grey color, 0 height
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-color', exemptColorExpression);
+                    map.setPaintProperty('parcels-3d', 'fill-extrusion-height', exemptHeightExpression);
+                    map.setPaintProperty('parcels-flat', 'fill-color', exemptColorExpression);
                 }
             });
 
