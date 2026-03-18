@@ -12,16 +12,25 @@
         state: directory
         mode: 0755
 
+    - name: Convert GDB to GeoParquet (cached)
+      ansible.builtin.command:
+        argv:
+          - "python3"
+          - "{{ working_dir }}/src/gdb_to_parquet.py"
+          - "--gdb={{ statewide_gdb }}"
+          - "--output={{ statewide_parquet }}"
+        chdir: "{{ working_dir }}"
+        creates: "{{ statewide_parquet }}"
+
     - name: Generate GeoJSON
       ansible.builtin.command:
         argv:
           - "python3"
           - "{{ working_dir }}/src/main.py"
           - "--output_dir={{ build_dir }}"
-          - "--statewide_gdb={{ statewide_gdb }}"
+          - "--parquet={{ statewide_parquet }}"
           - "--cama_dir={{ cama_dir }}"
         chdir: "{{ working_dir }}"
-        # creates: "{{ geojson_dir }}"
 
     - name: Check if map tiles already exist
       ansible.builtin.stat:

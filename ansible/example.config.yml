@@ -1,5 +1,6 @@
 input_dir: "{{ working_dir }}/inputs"
 statewide_gdb: "{{ input_dir }}/ct.gdb"
+statewide_parquet: "{{ build_dir }}/statewide.parquet"
 cama_dir: "{{ input_dir }}/Parcel Collection 2024/CAMA_By_COG"
 
 build_dir: "{{ working_dir }}/tmp"

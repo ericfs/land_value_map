@@ -35,6 +35,7 @@ RUN pip3 install --break-system-packages \
     ansible \
     geopandas \
     fiona \
+    pyarrow \
     pyogc \
     contextily
 

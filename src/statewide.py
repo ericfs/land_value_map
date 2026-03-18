@@ -8,7 +8,6 @@ import gc
 import os
 import pandas as pd
 import geopandas as gpd
-import pyogrio
 from shapely.validation import make_valid
 
 from export_geojson import export_geojson
@@ -16,25 +15,6 @@ from tax_exempt import classify_tax_exempt
 from town_name import town_name_to_file_name, normalize_town_name
 from value_per_acre import compute_value_per_acre, filter_value_per_acre, compute_capped_value_per_acre
 
-STATEWIDE_LAYER = "Connecticut_CAMA_and_Parcel_Layer"
-
-
-def ensure_parquet(statewide_gdb, parquet_path):
-    """Convert the statewide GDB to GeoParquet if the parquet file doesn't exist.
-    Returns the parquet path."""
-    if os.path.exists(parquet_path):
-        print(f"Using cached GeoParquet: {parquet_path}")
-        return parquet_path
-
-    print(f"Converting GDB to GeoParquet (one-time)...")
-    gdf = pyogrio.read_dataframe(
-        statewide_gdb, layer=STATEWIDE_LAYER, on_invalid="fix",
-    )
-    gdf.to_parquet(parquet_path)
-    print(f"Saved GeoParquet: {parquet_path} ({len(gdf)} rows)")
-    del gdf
-    gc.collect()
-    return parquet_path
 DROP_ROWS = {
     # This is the entire road network in a single parcel
     'shelton': ('Link', '40  40'),
@@ -109,17 +89,14 @@ def process_town(gdf, town_name, output_dir, cama_dir=None):
     return filename
 
 
-def process_statewide_gdb(output_dir, statewide_gdb, cama_dir=None, overwrite=False):
-    """Read the statewide GDB (via GeoParquet cache) and process each town.
+def process_statewide(output_dir, parquet_path, cama_dir=None, overwrite=False):
+    """Read the statewide GeoParquet town-by-town and process each.
     Returns list of towns that failed."""
-    parquet_path = statewide_gdb + ".parquet"
-    ensure_parquet(statewide_gdb, parquet_path)
-
-    print("Reading GeoParquet...")
-    gdf_all = gpd.read_parquet(parquet_path)
-    gdf_all["Town_Name"] = gdf_all["Town_Name"].str.strip()
-    town_names = sorted(gdf_all["Town_Name"].unique())
-    print(f"Found {len(town_names)} towns ({len(gdf_all)} parcels)")
+    # Read just the Town_Name column to get the list of towns (low memory)
+    names_df = pd.read_parquet(parquet_path, columns=["Town_Name"])
+    town_names = sorted(names_df["Town_Name"].str.strip().unique())
+    print(f"Found {len(town_names)} towns in {parquet_path}")
+    del names_df
 
     failed = []
     for town_name in town_names:
@@ -129,14 +106,18 @@ def process_statewide_gdb(output_dir, statewide_gdb, cama_dir=None, overwrite=Fa
             continue
 
         try:
-            gdf = gdf_all[gdf_all["Town_Name"] == town_name].copy()
+            # Read one town at a time using row-group filtering
+            gdf = gpd.read_parquet(
+                parquet_path,
+                filters=[("Town_Name", "==", town_name)],
+            )
             print(f"\tProcessing {town_name} ({len(gdf)} parcels)")
             process_town(gdf, town_name, output_dir, cama_dir)
             print(f"\t\tExported {town_name}")
         except Exception as e:
             print(f"\t\tError processing {town_name}: {e}")
             failed.append(town_name)
+        finally:
+            gc.collect()
 
-    del gdf_all
-    gc.collect()
     return failed
